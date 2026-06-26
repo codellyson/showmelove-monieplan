@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>showmelove — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="dashboard.css">
+<script src="theme.js"></script>
+</head>
+<body>
+  <div class="page">
+    <div class="dash">
+
+      <!-- SIDEBAR -->
+      <aside class="side">
+        <a class="side-brand brand" href="landing.html">
+          <div class="brand-mark">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.3 4 2.5.8-1.2 2-2.5 4-2.5 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21Z"/></svg>
+          </div>
+          <span class="brand-name" style="font-size:19px;">showmelove</span>
+        </a>
+        <nav class="side-nav" id="sideNav"></nav>
+        <div class="side-spacer"></div>
+        <div class="side-user">
+          <div class="avatar" style="width:38px;height:38px;background:var(--brand);font-size:14px;">AO</div>
+          <div style="min-width:0;">
+            <div class="side-user-name">Ada Obi</div>
+            <div class="side-user-handle">@adabuilds</div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN -->
+      <main class="main">
+        <div class="main-head">
+          <div>
+            <div class="welcome-row">
+              <div class="welcome">Welcome back, Ada</div>
+              <span class="head-badge" id="headBadge" hidden>Own processor · keep 100%</span>
+            </div>
+            <div class="welcome-sub" id="welcomeSub">You got <span class="accent">4 new love notes</span> this week.</div>
+          </div>
+          <div class="link-bar">
+            <span class="link-bar-url">showmelove.com/adabuilds</span>
+            <button class="copy-btn" id="copyBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+              <span id="copyLabel">Copy link</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Demo: account-state variants (no backend in this build) -->
+        <div class="dash-variants">
+          <span class="dash-variants-label">View:</span>
+          <button data-variant="managed" class="is-on">Managed</button>
+          <button data-variant="empty">Empty (new)</button>
+          <button data-variant="byo">Bring-your-own</button>
+        </div>
+
+        <!-- METRICS -->
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">Total raised</div>
+            <div class="metric-value" id="mTotal">₦45,000</div>
+            <div class="metric-delta" id="mTotalDelta">↑ ₦12k vs last month</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Supporters</div>
+            <div class="metric-value" id="mSupporters">23</div>
+            <div class="metric-delta" id="mSupportersDelta">↑ 4 this week</div>
+          </div>
+          <div class="metric metric-goal">
+            <div class="goal-head">
+              <span class="goal-label">Monthly goal</span>
+              <span class="goal-fig" id="mGoalFig"><b>₦45k</b> <span class="goal-of">/ ₦100k</span></span>
+            </div>
+            <div class="goal-track"><div class="bar-fill" id="mGoalBar" style="width:45%;"></div></div>
+            <div class="goal-note" id="mGoalNote">₦55,000 to reach your goal</div>
+          </div>
+        </div>
+
+        <!-- LOWER GRID -->
+        <div class="lower">
+          <!-- LOVE NOTES -->
+          <div class="notes-panel">
+            <div class="notes-head">
+              <span class="notes-title">Recent love notes</span>
+              <span class="notes-seeall">See all</span>
+            </div>
+            <div id="noteList"></div>
+          </div>
+
+          <!-- UPGRADE NUDGE -->
+          <div class="nudge" id="nudge">
+            <button class="nudge-close" id="nudgeClose" aria-label="Dismiss">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9A8F7C" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+            </button>
+            <div class="nudge-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg>
+            </div>
+            <div class="nudge-title">Keep 100% of your love</div>
+            <div class="nudge-body">You're growing fast. Connect your own Paystack or Stripe and we'll stop taking a fee — page, link, and supporters stay exactly as they are.</div>
+            <a class="nudge-cta" href="connect.html">Connect a processor</a>
+            <div class="nudge-foot">You can switch anytime.</div>
+          </div>
+        </div>
+      </main>
+
+    </div>
+  </div>
+  <script src="dashboard.js"></script>
+</body>
+</html>

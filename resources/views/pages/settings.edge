@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  @include('partials/head')
+</head>
+<body data-brand-save="1">
+  <div class="page settings-page">
+    <div class="settings-wrap">
+
+      <header class="topbar">
+        <a class="brand" href="/">
+          <div class="brand-mark">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.3 4 2.5.8-1.2 2-2.5 4-2.5 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21Z"/></svg>
+          </div>
+          <span class="brand-name">showmelove</span>
+        </a>
+        <a class="back-link" href="/dashboard">← Back to dashboard</a>
+      </header>
+
+      <h1 class="settings-title">Settings</h1>
+      <p class="settings-sub">Update your page details — changes go live immediately.</p>
+
+      @if(saved)
+      <div class="flash flash-ok">{{ saved }}</div>
+      @end
+      @if(error)
+      <div class="flash flash-err">{{ error }}</div>
+      @end
+
+      <form method="POST" action="/settings" class="settings-card">
+        {{ csrfField() }}
+
+        <label class="field-label">Display name</label>
+        <input class="text-input" name="displayName" value="{{ creator.displayName }}" required>
+
+        <label class="field-label" style="margin-top:18px;">Your link</label>
+        <div class="link-input">
+          <span class="link-prefix">showmelove.com/</span>
+          <input class="link-handle" name="handle" value="{{ creator.handle }}" required>
+        </div>
+
+        <label class="field-label" style="margin-top:18px;">Short bio</label>
+        <textarea class="textarea" name="bio" rows="3" maxlength="280">{{ creator.bio || '' }}</textarea>
+
+        <div class="field-row">
+          <div class="field-col">
+            <label class="field-label">Currency</label>
+            <select class="select" name="currency">
+              @each(c in currencies)
+              <option value="{{ c }}" {{ creator.currency === c ? 'selected' : '' }}>{{ c }}</option>
+              @end
+            </select>
+          </div>
+          <div class="field-col">
+            <label class="field-label">Monthly goal</label>
+            <input class="text-input" name="monthlyGoal" inputmode="numeric" value="{{ creator.monthlyGoal }}">
+          </div>
+        </div>
+
+        <label class="field-label" style="margin-top:18px;">Brand color</label>
+        <div class="brand-swatches">
+          @each(p in palette)
+          <label class="brand-swatch-opt">
+            <input type="radio" name="brandColor" value="{{ p }}" {{ creator.brandColor === p ? 'checked' : '' }}>
+            <span style="background:{{ p }};"></span>
+          </label>
+          @end
+        </div>
+
+        <div class="settings-payout">
+          Payout mode: <b>{{ creator.payoutMode === 'byo' ? 'Bring-your-own (0% fee)' : 'Managed payouts' }}</b>
+          · <a href="/connect">manage payouts</a>
+        </div>
+
+        <button class="btn-primary settings-save" type="submit">Save changes</button>
+      </form>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,24 @@
+@if(user)
+<div class="acct" data-menu>
+  <button class="acct-btn" type="button" data-menu-toggle>
+    <span class="acct-avatar">{{ (creator ? creator.displayName : (user.name || user.email)).charAt(0).toUpperCase() }}</span>
+    <span class="acct-name">{{ creator ? creator.displayName : (user.name || user.email) }}</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+  </button>
+  <div class="acct-menu" hidden>
+    <a href="/dashboard">Dashboard</a>
+    @if(creator)
+    <a href="/{{ creator.handle }}">My page</a>
+    @end
+    <a href="/connect">Connect a processor</a>
+    <a href="/settings">Settings</a>
+    <form method="POST" action="/logout">
+      {{ csrfField() }}
+      <button type="submit" class="acct-signout">Sign out</button>
+    </form>
+  </div>
+</div>
+@else
+<a class="nav-link" href="/login">Log in</a>
+<a class="btn-pill" href="/register">Start your page</a>
+@end

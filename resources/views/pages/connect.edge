@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  @include('partials/head')
+</head>
+<body data-brand-save="1">
+  <div class="page">
+    <div class="wrap">
+
+      <!-- TOP BAR -->
+      <header class="topbar">
+        <a class="brand" href="/">
+          <div class="brand-mark">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.3 4 2.5.8-1.2 2-2.5 4-2.5 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21Z"/></svg>
+          </div>
+          <span class="brand-name">showmelove</span>
+        </a>
+        <a class="back-link" href="/dashboard">← Back to dashboard</a>
+      </header>
+
+      <div class="head-block">
+        <span class="eyebrow badge badge-muted">Current mode · {{ creator.payoutMode === 'byo' ? 'Bring-your-own' : 'Managed payouts' }}</span>
+        <h1 class="title">Connect your own processor</h1>
+        <p class="subtitle">Already on Paystack or Stripe? Connect it and we'll stop taking a fee. Your page, link, and supporters stay exactly as they are.</p>
+      </div>
+
+      <div class="layout">
+
+        <!-- MAIN FLOW -->
+        <main class="flow">
+
+          <!-- STAGE: SELECT -->
+          <div id="stageSelect" {{ creator.payoutMode === 'byo' ? 'hidden' : '' }}>
+            <div class="proc-grid">
+              <button class="proc" data-proc="paystack" id="procPaystack">
+                <div class="proc-logo" style="background:#011B33;">P</div>
+                <div class="proc-info">
+                  <div class="proc-name">Paystack</div>
+                  <div class="proc-meta">Popular in Nigeria · connect with API keys</div>
+                </div>
+                <div class="proc-check"></div>
+              </button>
+              <button class="proc" data-proc="stripe" id="procStripe">
+                <div class="proc-logo" style="background:#635BFF;">S</div>
+                <div class="proc-info">
+                  <div class="proc-name">Stripe</div>
+                  <div class="proc-meta">One-click secure OAuth connect</div>
+                </div>
+                <div class="proc-check"></div>
+              </button>
+            </div>
+
+            <!-- PANEL: Paystack -->
+            <div class="panel" id="panelPaystack" hidden>
+              <div class="panel-head">Connect Paystack</div>
+              <p class="panel-note">Paste your API keys from the Paystack dashboard → Settings → API Keys &amp; Webhooks. We only store what's needed to create charges on your account.</p>
+              <label class="field-label">Public key</label>
+              <input class="text-input" id="psPublic" placeholder="pk_live_…">
+              <label class="field-label" style="margin-top:16px;">Secret key</label>
+              <input class="text-input" id="psSecret" type="password" placeholder="sk_live_…">
+              <button class="btn-primary connect-btn" id="connectPaystack">Connect Paystack</button>
+            </div>
+
+            <!-- PANEL: Stripe -->
+            <div class="panel" id="panelStripe" hidden>
+              <div class="panel-head">Connect Stripe</div>
+              <p class="panel-note">You'll be redirected to Stripe to authorize showmelove. No keys to copy — Stripe hands us a scoped connection and you come right back.</p>
+              <button class="btn-primary connect-btn" id="connectStripe">
+                Continue to Stripe
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px;"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </button>
+            </div>
+
+            <div class="empty-hint" id="emptyHint">Pick a processor above to continue.</div>
+          </div>
+
+          <!-- STAGE: CONNECTING -->
+          <div id="stageConnecting" class="stage-center" hidden>
+            <div class="spinner"></div>
+            <div class="stage-title" id="connectingTitle">Connecting…</div>
+            <div class="stage-sub">Securely linking your account. This only takes a moment.</div>
+          </div>
+
+          <!-- STAGE: CONNECTED -->
+          <div id="stageConnected" class="stage-center" {{ creator.payoutMode === 'byo' ? '' : 'hidden' }}>
+            <div class="connected-icon">
+              <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <div class="stage-title" id="connectedTitle">{{ creator.processor === 'stripe' ? 'Stripe' : 'Paystack' }} connected</div>
+            <div class="stage-sub">You're now keeping <strong>100%</strong> of your support. Funds settle straight to your processor.</div>
+            <div class="fee-flip">
+              <span class="fee-was">Platform fee</span>
+              <span class="fee-now">0%</span>
+            </div>
+            <div class="connected-actions">
+              <a class="btn-primary" href="/dashboard" style="display:flex;align-items:center;">Go to dashboard</a>
+              <button class="btn-outline" id="switchBack">Switch back to managed</button>
+            </div>
+          </div>
+
+        </main>
+
+        <!-- SIDEBAR -->
+        <aside class="aside">
+          <div class="aside-card">
+            <div class="aside-title">Why connect your own?</div>
+            <ul class="aside-list">
+              <li><b>Keep 100%.</b> No platform fee on support.</li>
+              <li><b>Nothing moves.</b> Same page, link, and supporters.</li>
+              <li><b>Switch anytime.</b> Go back to managed in one tap.</li>
+            </ul>
+          </div>
+          <div class="aside-card aside-card-dark">
+            <div class="aside-title" style="color:#fff;">Heads up</div>
+            <p class="aside-body">Bring-your-own pages are <b>one-time only</b> in v1 — monthly support stays on managed payouts. You can keep both modes in mind as you grow.</p>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </div>
+  <script src="/assets/connect.js"></script>
+</body>
+</html>
