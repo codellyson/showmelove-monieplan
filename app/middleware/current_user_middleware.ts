@@ -3,6 +3,7 @@ import type { NextFn } from '@adonisjs/core/types/http'
 import { auth, type SessionUser } from '#lib/auth'
 import { toHeaders } from '#lib/auth_http'
 import { ensureCreatorFor } from '#services/creator_provisioner'
+import * as khaime from '#services/khaime'
 import Creator from '#models/creator'
 
 /**
@@ -21,6 +22,15 @@ export default class CurrentUserMiddleware {
 
     if (user) {
       creator = await ensureCreatorFor(user)
+      // Provision the Khaime sub-merchant once (managed creators). Log failures
+      // instead of swallowing them, so misconfig surfaces in the server log.
+      if (khaime.isConfigured() && creator.payoutMode === 'managed' && !creator.khaimeMerchantId) {
+        try {
+          await khaime.ensureMerchant(creator, user.email)
+        } catch (error) {
+          ctx.logger.error({ err: error }, 'Khaime ensureMerchant failed')
+        }
+      }
     }
 
     ctx.user = user

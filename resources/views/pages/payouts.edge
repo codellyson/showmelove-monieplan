@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  @include('partials/head')
+</head>
+<body data-brand-save="1">
+  <div class="page payouts-page">
+    <div class="payouts-wrap">
+
+      <header class="topbar">
+        <a class="brand" href="/">
+          <div class="brand-mark">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.3 4 2.5.8-1.2 2-2.5 4-2.5 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21Z"/></svg>
+          </div>
+          <span class="brand-name">showmelove</span>
+        </a>
+        <a class="back-link" href="/dashboard">← Back to dashboard</a>
+      </header>
+
+      <h1 class="payouts-title">Payouts</h1>
+
+      @if(saved)
+      <div class="flash flash-ok">{{ saved }}</div>
+      @end
+      @if(error)
+      <div class="flash flash-err">{{ error }}</div>
+      @end
+      @if(stripeDone)
+      <div class="flash flash-ok">Thanks — we're finalizing your USD payout account.</div>
+      @end
+
+      @if(isManaged)
+      <!-- ===== MANAGED (Khaime) ===== -->
+
+      <div class="balance-card">
+        <div class="balance-label">Available to pay out</div>
+        <div class="balance-value">{{ netLabel }}</div>
+        <div class="balance-sub">{{ grossLabel }} received · after Khaime's {{ commissionPct }}% fee</div>
+      </div>
+
+      @if(!khaimeConfigured)
+      <div class="note-card">Managed payouts via <b>Khaime</b> aren't enabled in this environment yet — the flow below is wired and ready once keys are set.</div>
+      @end
+
+      <!-- How you get paid -->
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">How you get paid</span>
+          @if(payoutReady)
+          <span class="kyc-badge is-ok">ready{{ settlementCurrency ? ' · ' + settlementCurrency : '' }}</span>
+          @end
+        </div>
+        @if(payoutMethod === 'bank')
+        <!-- African currency → local bank; Khaime verifies -->
+        <p class="panel-note">You earn in <b>{{ sym }} {{ creator.currency }}</b>, so you're paid to your local bank. Enter your details — Khaime verifies and settles them.</p>
+        <form method="POST" action="/payouts/bank" class="grid2">
+          {{ csrfField() }}
+          <div class="span2">
+            <label class="field-label">Bank</label>
+            <select class="select" name="settlement_bank">
+              @each(b in banks)
+              <option value="{{ b }}">{{ b }}</option>
+              @end
+            </select>
+          </div>
+          <div><label class="field-label">Account number</label><input class="text-input" name="account_number" inputmode="numeric" required></div>
+          <div><label class="field-label">Account name</label><input class="text-input" name="account_name" required></div>
+          <div class="span2"><button class="btn-primary" type="submit">Save payout bank</button></div>
+        </form>
+        @else
+        <!-- Foreign currency → Khaime-managed Stripe -->
+        <p class="panel-note">You earn in <b>{{ sym }} {{ creator.currency }}</b>, so you're paid through a Khaime-managed Stripe account. You'll be redirected to a short setup — Khaime manages the account for you.</p>
+        <form method="POST" action="/payouts/stripe">
+          {{ csrfField() }}
+          <button class="btn-primary" type="submit">Set up {{ creator.currency }} payouts</button>
+        </form>
+        @end
+      </div>
+
+      <!-- Withdraw -->
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">Withdraw</span>
+          @if(!payoutReady)
+          <span class="kyc-badge">add a method first</span>
+          @end
+        </div>
+        @if(payoutReady)
+        <p class="panel-note">Move money from your wallet to your payout account. Requests are reviewed before settlement.</p>
+        <form method="POST" action="/payouts/request" class="payout-request">
+          {{ csrfField() }}
+          <div class="amount-field">
+            <span class="amount-sym">{{ sym }}</span>
+            <input class="text-input" name="amount" inputmode="numeric" placeholder="0">
+          </div>
+          <button class="btn-primary" type="submit">Request payout</button>
+        </form>
+        @else
+        <p class="panel-note">Set up a payout method above, then you can withdraw here.</p>
+        @end
+      </div>
+
+      <div class="payouts-foot">Prefer to keep 100%? <a href="/connect">Bring your own processor</a> instead.</div>
+
+      @else
+      <!-- ===== BRING-YOUR-OWN ===== -->
+      <div class="balance-card">
+        <div class="balance-label">Bring-your-own</div>
+        <div class="balance-value">{{ grossLabel }}</div>
+        <div class="balance-sub">You keep 100%. Support settles through your own {{ creator.processor === 'stripe' ? 'Stripe' : 'Paystack' }} account — showmelove doesn't hold your funds.</div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><span class="panel-title">Your processor</span></div>
+        <p class="panel-note">Payouts are handled by your connected processor. Manage or switch it on the connect page.</p>
+        <a class="btn-primary" href="/connect" style="display:inline-flex;align-items:center;">Manage processor</a>
+      </div>
+      <div class="payouts-foot">Want us to handle settlement instead? <a href="/connect">Switch to managed payouts</a>.</div>
+      @end
+
+    </div>
+  </div>
+</body>
+</html>

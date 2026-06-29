@@ -24,4 +24,15 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   SESSION_DRIVER: Env.schema.enum(['cookie', 'memory'] as const),
+
+  /*
+  |----------------------------------------------------------
+  | Khaime — managed payouts partner (optional; mock used if unset)
+  |----------------------------------------------------------
+  */
+  KHAIME_API_KEY: Env.schema.string.optional(),
+  KHAIME_API_URL: Env.schema.string.optional(),
+  KHAIME_WEBHOOK_SECRET: Env.schema.string.optional(),
+  KHAIME_COMMISSION_RATE: Env.schema.number.optional(),
+  APP_URL: Env.schema.string.optional(),
 })

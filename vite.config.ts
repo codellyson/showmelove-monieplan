@@ -2,6 +2,11 @@ import { defineConfig } from 'vite'
 import adonisjs from '@adonisjs/vite/client'
 
 export default defineConfig({
+  // Allow tunneled hosts (e.g. cloudflared *.trycloudflare.com) to reach the
+  // dev server so webhooks and pages work through a public tunnel.
+  server: {
+    allowedHosts: ['.trycloudflare.com', '.ngrok-free.app', '.ngrok.io'],
+  },
   plugins: [
     adonisjs({
       /**

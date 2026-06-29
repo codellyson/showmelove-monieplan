@@ -1,0 +1,71 @@
+/* Payouts page */
+.payouts-page { padding: 30px 32px 80px; }
+.payouts-wrap { max-width: 640px; margin: 0 auto; }
+
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.back-link { font: 600 14px 'Hanken Grotesk', sans-serif; color: var(--muted); }
+.payouts-title { font: 800 34px 'Bricolage Grotesque', sans-serif; letter-spacing: -0.03em; margin: 0 0 20px; }
+
+.flash {
+  border: 2px solid var(--ink); border-radius: 12px;
+  padding: 12px 16px; margin-bottom: 18px;
+  font: 700 14px 'Hanken Grotesk', sans-serif;
+}
+.flash-ok { background: #E7F6EC; color: #1F6B43; }
+.flash-err { background: #FBE6E2; color: #B23A28; }
+
+.balance-card {
+  background: var(--ink); color: #fff;
+  border: 2px solid var(--ink); border-radius: 20px;
+  padding: 24px 26px; box-shadow: 6px 6px 0 var(--brand);
+  margin-bottom: 18px;
+}
+.balance-label { font: 600 13px 'Hanken Grotesk', sans-serif; color: #9A8F7C; text-transform: uppercase; letter-spacing: 0.05em; }
+.balance-est { color: var(--gold); }
+.balance-value { font: 800 40px 'Bricolage Grotesque', sans-serif; letter-spacing: -0.03em; margin: 8px 0 6px; }
+.balance-sub { font: 500 14px/1.55 'Hanken Grotesk', sans-serif; color: #B9AE99; }
+
+.note-card {
+  background: #FAF5EA; border: 2px dashed var(--ink); border-radius: 14px;
+  padding: 14px 16px; margin-bottom: 18px;
+  font: 500 14px/1.55 'Hanken Grotesk', sans-serif; color: var(--muted);
+}
+.note-card code { background: #fff; border: 1.5px solid var(--ink); border-radius: 6px; padding: 1px 6px; font-size: 12px; }
+
+.panel {
+  background: #fff; border: 2px solid var(--ink); border-radius: 18px;
+  padding: 22px; box-shadow: 4px 4px 0 var(--ink); margin-bottom: 18px;
+}
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.panel-title { font: 800 18px 'Bricolage Grotesque', sans-serif; letter-spacing: -0.02em; }
+.panel-note { font: 500 14px/1.55 'Hanken Grotesk', sans-serif; color: var(--muted); margin: 0 0 16px; }
+.kyc-badge {
+  font: 700 11px 'Hanken Grotesk', sans-serif; text-transform: uppercase; letter-spacing: 0.05em;
+  background: #F2ECE0; color: var(--muted); border: 1.5px solid var(--ink);
+  border-radius: 999px; padding: 4px 11px; white-space: nowrap;
+}
+.kyc-badge.is-ok { background: #E7F6EC; color: #1F6B43; }
+
+/* Form controls */
+.field-label { font: 700 12px 'Hanken Grotesk', sans-serif; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-2); }
+.text-input { width: 100%; height: 50px; padding: 0 14px; border: 2px solid var(--ink); border-radius: 11px; font: 600 15px 'Hanken Grotesk', sans-serif; background: #fff; }
+.text-input:focus { box-shadow: 3px 3px 0 var(--ink); outline: none; }
+.select { width: 100%; height: 50px; border: 2px solid var(--ink); border-radius: 11px; padding: 0 12px; font: 600 15px 'Hanken Grotesk', sans-serif; background: #fff; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid2 .span2 { grid-column: 1 / -1; }
+
+.payout-request { display: flex; gap: 12px; align-items: stretch; }
+.amount-field { flex: 1; display: flex; align-items: center; height: 54px; border: 2px solid var(--ink); border-radius: 12px; overflow: hidden; background: #fff; }
+.amount-sym { padding: 0 4px 0 16px; font: 800 20px 'Bricolage Grotesque', sans-serif; }
+.amount-field .text-input { border: none; height: 100%; box-shadow: none; }
+.amount-field .text-input:focus { box-shadow: none; }
+.payout-request .btn-primary { height: 54px; white-space: nowrap; }
+
+.payouts-foot { text-align: center; font: 500 14px 'Hanken Grotesk', sans-serif; color: var(--muted); margin-top: 6px; }
+.payouts-foot a { color: var(--brand); font-weight: 700; }
+
+@media (max-width: 560px) {
+  .payouts-page { padding: 20px 16px 60px; }
+  .grid2 { grid-template-columns: 1fr; }
+  .payout-request { flex-direction: column; }
+}

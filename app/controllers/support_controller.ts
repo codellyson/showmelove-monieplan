@@ -3,6 +3,11 @@ import Creator from '#models/creator'
 import Support from '#models/support'
 import { presentCreator } from '#services/creator_presenter'
 import { railFor } from '#services/payment_rail'
+import * as khaime from '#services/khaime'
+
+function makeReference(): string {
+  return 'sml_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
+}
 
 export default class SupportController {
   /** Public creator page (showmelove.com/:handle). */
@@ -20,7 +25,8 @@ export default class SupportController {
     })
   }
 
-  /** A supporter sends love. Runs the (mock) payment seam end-to-end. */
+  /** A supporter sends love. Managed creators charge via Khaime (redirect to
+   *  hosted checkout, confirmed by webhook); otherwise the mock rail settles inline. */
   async store({ params, request, response }: HttpContext) {
     const creator = await Creator.findBy('handle', params.handle)
     if (!creator) {
@@ -32,11 +38,48 @@ export default class SupportController {
     const recurring = creator.payoutMode === 'managed' && Boolean(request.input('recurring', false))
     const rawName = String(request.input('supporterName', '')).trim()
     const rawMessage = String(request.input('message', '')).trim()
+    const rawEmail = String(request.input('email', '')).trim()
 
     if (!amount) {
       return response.badRequest({ error: 'Pick an amount' })
     }
 
+    // ---- Managed payouts via Khaime (real checkout + async webhook) ----
+    if (creator.payoutMode === 'managed' && khaime.isConfigured() && creator.khaimeMerchantId) {
+      const reference = makeReference()
+      const origin = `${request.protocol()}://${request.host()}`
+      try {
+        const charge = await khaime.createCharge({
+          subMerchantId: Number(creator.khaimeMerchantId),
+          amountMajor: amount,
+          currency: creator.currency,
+          reference,
+          customerEmail: rawEmail || `supporter+${reference}@showmelove.app`,
+          customerName: rawName || null,
+          redirectUrl: `${origin}/${creator.handle}?thanks=1`,
+          recurring,
+          metadata: { creator: creator.handle },
+        })
+        if (!charge.paymentUrl) throw new Error('No checkout URL returned')
+
+        // Record a pending support; the webhook flips it to succeeded.
+        await Support.create({
+          creatorId: creator.id,
+          supporterName: rawName || null,
+          message: rawMessage || null,
+          amount,
+          currency: creator.currency,
+          recurring,
+          status: 'pending',
+          reference,
+        })
+        return response.json({ status: 'redirect', checkoutUrl: charge.paymentUrl })
+      } catch (e) {
+        return response.status(502).json({ status: 'failed', error: 'Could not start checkout. Please try again.' })
+      }
+    }
+
+    // ---- Mock / bring-your-own (settles inline) ----
     const rail = railFor(creator)
     const charge = await rail.createCharge({
       amount,

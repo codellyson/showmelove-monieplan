@@ -46,6 +46,10 @@ export default class Creator extends BaseModel {
   @column()
   declare processor: Processor
 
+  /** Khaime marketplace sub-merchant id (managed payouts). */
+  @column()
+  declare khaimeMerchantId: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

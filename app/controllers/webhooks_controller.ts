@@ -1,0 +1,76 @@
+import type { HttpContext } from '@adonisjs/core/http'
+import Support from '#models/support'
+import Creator from '#models/creator'
+import * as khaime from '#services/khaime'
+
+export default class WebhooksController {
+  /** Health check — lets you confirm the endpoint is reachable in a browser. */
+  async khaimeHealth({ response }: HttpContext) {
+    return response.ok({ ok: true, endpoint: 'khaime', message: 'POST signed Khaime events here.' })
+  }
+
+  /**
+   * Khaime webhook. Verifies the HMAC-SHA256 signature over the raw body, then
+   * confirms the matching support on `payment.succeeded`. Idempotent.
+   */
+  async khaime({ request, response, logger }: HttpContext) {
+    const raw = request.raw() ?? ''
+    const signature = request.header('x-khaime-signature')
+
+    if (!khaime.verifyWebhook(raw, signature)) {
+      return response.unauthorized({ error: 'Invalid signature' })
+    }
+
+    const event = request.body() as {
+      event_type?: string
+      data?: {
+        partner_reference?: string
+        metadata?: { partner_reference?: string }
+        merchant_id?: string | number
+        id?: string | number
+        status?: string
+        provider?: string
+        stripe_account_id?: string
+      }
+    }
+    const type = event?.event_type
+    const data = event?.data ?? {}
+
+    // Charge-API tips can ONLY be confirmed via webhook (no polling), so this
+    // is the single source of truth for managed payments. Idempotent.
+    if (type === 'payment.succeeded' || type === 'payment.failed') {
+      const reference = data.metadata?.partner_reference ?? data.partner_reference
+      if (reference) {
+        const support = await Support.findBy('reference', reference)
+        if (support) {
+          const next = type === 'payment.succeeded' ? 'succeeded' : 'failed'
+          if (support.status !== next && support.status !== 'succeeded') {
+            support.status = next
+            await support.save()
+          }
+        }
+      }
+    } else if (type === 'account.updated') {
+      // Sub-merchant payout/onboarding status changed (e.g. Stripe Connect approved).
+      const merchantId = String(data.merchant_id ?? data.id ?? '')
+      if (merchantId) {
+        const creator = await Creator.findBy('khaimeMerchantId', merchantId)
+        logger.info(
+          {
+            event: type,
+            merchantId,
+            creator: creator?.handle ?? null,
+            status: data.status,
+            provider: data.provider,
+            stripeAccountId: data.stripe_account_id,
+          },
+          'Khaime account.updated'
+        )
+      }
+    } else if (type) {
+      logger.info({ event: type }, 'Khaime webhook received (unhandled type)')
+    }
+
+    return response.ok({ received: true })
+  }
+}

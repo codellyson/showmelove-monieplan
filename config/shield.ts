@@ -17,9 +17,12 @@ const shieldConfig = defineConfig({
    */
   csrf: {
     enabled: true,
-    // Better Auth has its own origin/CSRF protection (trustedOrigins) and is
-    // mounted under /api/auth, so it is exempt from AdonisJS shield CSRF.
-    exceptRoutes: (ctx) => ctx.request.url().startsWith('/api/auth'),
+    // Better Auth (own CSRF/origin protection) and signature-verified provider
+    // webhooks are exempt from AdonisJS shield CSRF.
+    exceptRoutes: (ctx) => {
+      const url = ctx.request.url()
+      return url.startsWith('/api/auth') || url.startsWith('/webhooks')
+    },
     enableXsrfCookie: false,
     methods: ['POST', 'PUT', 'PATCH', 'DELETE'],
   },

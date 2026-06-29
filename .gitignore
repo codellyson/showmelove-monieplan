@@ -9,8 +9,9 @@ tmp
 .env.production.local
 .env.development.local
 
-# Frontend assets compiled code
-public/assets
+# Vite build output only — our hand-written design system also lives in
+# public/assets and must be tracked, so don't ignore the whole folder.
+public/assets/.vite
 
 # Build tools specific
 npm-debug.log
