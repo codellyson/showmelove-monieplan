@@ -5,6 +5,9 @@ import Support from '#models/support'
 
 export type PayoutMode = 'managed' | 'byo'
 export type Processor = 'paystack' | 'stripe' | null
+/** Payout-setup lifecycle. null = nothing set up yet. */
+export type PayoutStatus = 'pending' | 'action_needed' | 'ready' | null
+export type PayoutProvider = 'bank' | 'stripe' | null
 
 export default class Creator extends BaseModel {
   @column({ isPrimary: true })
@@ -49,6 +52,22 @@ export default class Creator extends BaseModel {
   /** Khaime marketplace sub-merchant id (managed payouts). */
   @column()
   declare khaimeMerchantId: string | null
+
+  /** Payout-setup state — knowable without a live Khaime call. */
+  @column()
+  declare payoutStatus: PayoutStatus
+
+  /** Rail the creator set up: 'bank' (local) or 'stripe' (foreign). */
+  @column()
+  declare payoutProvider: PayoutProvider
+
+  /** Currency Khaime settles in, once known. */
+  @column()
+  declare settlementCurrency: string | null
+
+  /** Khaime-managed Stripe Connect account id, when applicable. */
+  @column()
+  declare stripeAccountId: string | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

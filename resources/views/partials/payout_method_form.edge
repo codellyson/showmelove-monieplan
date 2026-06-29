@@ -1,0 +1,22 @@
+{{-- Payout-method form. Inherits page state: payoutMethod, banks, creator, payoutStatus. --}}
+@if(payoutMethod === 'bank')
+<form method="POST" action="/payouts/bank" class="grid2">
+  {{ csrfField() }}
+  <div class="span2">
+    <label class="field-label">Bank</label>
+    <select class="select" name="settlement_bank">
+      @each(b in banks)
+      <option value="{{ b }}">{{ b }}</option>
+      @end
+    </select>
+  </div>
+  <div><label class="field-label">Account number</label><input class="text-input" name="account_number" inputmode="numeric" required></div>
+  <div><label class="field-label">Account name</label><input class="text-input" name="account_name" required></div>
+  <div class="span2"><button class="btn-primary" type="submit">Save payout bank</button></div>
+</form>
+@else
+<form method="POST" action="/payouts/stripe">
+  {{ csrfField() }}
+  <button class="btn-primary" type="submit">{{ payoutStatus === 'pending' || payoutStatus === 'action_needed' ? 'Continue ' + creator.currency + ' setup' : 'Set up ' + creator.currency + ' payouts' }}</button>
+</form>
+@end

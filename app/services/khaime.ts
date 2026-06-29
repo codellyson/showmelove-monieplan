@@ -190,6 +190,28 @@ export function getMerchant(merchantId: string): Promise<KhaimeMerchantDetails> 
   return send<KhaimeMerchantDetails>('GET', `/marketplace/merchants/${merchantId}`)
 }
 
+export type PayoutSetupStatus = 'pending' | 'action_needed' | 'ready' | null
+
+/**
+ * Resolve the persisted payout status from Khaime's view of the merchant,
+ * relative to what we already knew. `payout_ready` is authoritative for "live";
+ * we never invent "pending" for a creator who hasn't started setup (current ===
+ * null stays null), and a started-but-not-ready setup only becomes
+ * `action_needed` when Khaime signals it explicitly.
+ */
+export function payoutStatusFor(
+  current: PayoutSetupStatus,
+  m: KhaimeMerchantDetails
+): PayoutSetupStatus {
+  if (m.payout?.payout_ready) return 'ready'
+  if (!current) return null
+  const s = (m.payout?.status ?? '').toLowerCase()
+  if (/(restrict|action|require|reject|disabled|incomplete|past_due|unverified)/.test(s)) {
+    return 'action_needed'
+  }
+  return current
+}
+
 /**
  * Set up an NGN (local-bank) payout. Khaime verifies the account/identity —
  * we only collect the bank details.

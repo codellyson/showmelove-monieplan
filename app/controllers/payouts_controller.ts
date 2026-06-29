@@ -29,8 +29,6 @@ export default class PayoutsController {
     const net = Math.round(gross * (1 - khaime.commissionRate()))
 
     const khaimeReady = khaime.isConfigured() && Boolean(creator.khaimeMerchantId)
-    let payoutReady = false
-    let settlementCurrency: string | null = null
     let bank: Record<string, unknown> | null = null
     const payoutMethod = payoutMethodFor(creator.currency)
     let banks = NG_BANKS
@@ -42,16 +40,27 @@ export default class PayoutsController {
         /* fall back to the static list */
       }
     }
+    // Refresh persisted payout status from Khaime when reachable; otherwise the
+    // last-known status (set here, at submit, or by the webhook) stands — so a
+    // completed setup stays visible even if Khaime is momentarily unreachable.
     if (khaimeReady) {
       try {
         const m = await khaime.getMerchant(creator.khaimeMerchantId as string)
-        payoutReady = Boolean(m.payout?.payout_ready)
+        const next = khaime.payoutStatusFor(creator.payoutStatus, m)
+        const settle = m.payout?.settlement_currency ?? null
+        if (next !== creator.payoutStatus || (settle && settle !== creator.settlementCurrency)) {
+          creator.payoutStatus = next
+          if (settle) creator.settlementCurrency = settle
+          await creator.save()
+        }
         bank = (m.payout?.details as Record<string, unknown>) ?? null
-        settlementCurrency = m.payout?.settlement_currency ?? null
       } catch {
-        /* Khaime unreachable — show local estimate only */
+        /* Khaime unreachable — fall back to the persisted status below */
       }
     }
+    const payoutStatus = creator.payoutStatus
+    const payoutReady = payoutStatus === 'ready'
+    const settlementCurrency = creator.settlementCurrency
 
     return view.render('pages/payouts', {
       title: 'showmelove — Payouts',
@@ -66,6 +75,7 @@ export default class PayoutsController {
       netLabel: sym + net.toLocaleString('en-US'),
       commissionPct,
       payoutMethod,
+      payoutStatus,
       payoutReady,
       settlementCurrency,
       bank,
@@ -80,7 +90,7 @@ export default class PayoutsController {
     if (!creator) return 'Not signed in'
     if (creator.payoutMode !== 'managed') return 'Switch to managed payouts first.'
     if (!khaime.isConfigured() || !creator.khaimeMerchantId) {
-      return 'Managed payouts (Khaime) are not enabled in this environment yet.'
+      return 'Managed payouts are not enabled in this environment yet.'
     }
     return null
   }
@@ -95,7 +105,10 @@ export default class PayoutsController {
         accountNumber: String(request.input('account_number', '')),
         accountName: String(request.input('account_name', '')),
       })
-      session.flash('saved', 'Bank saved — Khaime is verifying it.')
+      creator!.payoutProvider = 'bank'
+      if (creator!.payoutStatus !== 'ready') creator!.payoutStatus = 'pending'
+      await creator!.save()
+      session.flash('saved', "Bank saved — we're verifying it.")
     } catch (e) {
       session.flash('error', 'Could not save your bank. Check the details and try again.')
     }
@@ -114,7 +127,13 @@ export default class PayoutsController {
         returnUrl: `${origin}/payouts?stripe=done`,
         refreshUrl: `${origin}/payouts`,
       })
-      if (res.onboarding_url) return response.redirect(res.onboarding_url)
+      if (res.onboarding_url) {
+        creator!.payoutProvider = 'stripe'
+        if (res.stripe_account_id) creator!.stripeAccountId = res.stripe_account_id
+        if (creator!.payoutStatus !== 'ready') creator!.payoutStatus = 'pending'
+        await creator!.save()
+        return response.redirect(res.onboarding_url)
+      }
       session.flash('error', 'Stripe onboarding did not return a link. Try again.')
     } catch (e) {
       session.flash('error', 'Could not start USD payout setup. Try again.')

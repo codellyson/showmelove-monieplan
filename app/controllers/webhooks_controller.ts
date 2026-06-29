@@ -51,22 +51,36 @@ export default class WebhooksController {
         }
       }
     } else if (type === 'account.updated') {
-      // Sub-merchant payout/onboarding status changed (e.g. Stripe Connect approved).
+      // Sub-merchant payout/onboarding status changed (e.g. Stripe Connect
+      // approved). This is the event that tells us setup is complete, so we
+      // persist it — re-fetching the merchant for the authoritative payout_ready.
       const merchantId = String(data.merchant_id ?? data.id ?? '')
-      if (merchantId) {
-        const creator = await Creator.findBy('khaimeMerchantId', merchantId)
-        logger.info(
-          {
-            event: type,
-            merchantId,
-            creator: creator?.handle ?? null,
-            status: data.status,
-            provider: data.provider,
-            stripeAccountId: data.stripe_account_id,
-          },
-          'Khaime account.updated'
-        )
+      const creator = merchantId ? await Creator.findBy('khaimeMerchantId', merchantId) : null
+      if (creator) {
+        if (data.provider === 'stripe' || data.stripe_account_id) creator.payoutProvider = 'stripe'
+        if (data.stripe_account_id) creator.stripeAccountId = data.stripe_account_id
+        try {
+          const m = await khaime.getMerchant(merchantId)
+          creator.payoutStatus = khaime.payoutStatusFor(creator.payoutStatus ?? 'pending', m)
+          if (m.payout?.settlement_currency) creator.settlementCurrency = m.payout.settlement_currency
+        } catch {
+          // Can't reach Khaime — at least record that a method exists.
+          if (!creator.payoutStatus) creator.payoutStatus = 'pending'
+        }
+        await creator.save()
       }
+      logger.info(
+        {
+          event: type,
+          merchantId,
+          creator: creator?.handle ?? null,
+          payoutStatus: creator?.payoutStatus ?? null,
+          status: data.status,
+          provider: data.provider,
+          stripeAccountId: data.stripe_account_id,
+        },
+        'Khaime account.updated'
+      )
     } else if (type) {
       logger.info({ event: type }, 'Khaime webhook received (unhandled type)')
     }

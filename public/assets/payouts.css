@@ -45,6 +45,21 @@
   border-radius: 999px; padding: 4px 11px; white-space: nowrap;
 }
 .kyc-badge.is-ok { background: #E7F6EC; color: #1F6B43; }
+.kyc-badge.is-warn { background: #FCEFD6; color: #8A5A12; }
+.kyc-badge.is-pending { background: #E9EEF6; color: #2C3E50; }
+
+.panel-note.is-ok { color: #1F6B43; font-weight: 600; }
+
+/* Collapsible "update details" once a method is connected */
+.update-method { margin-top: 2px; }
+.update-method > summary {
+  cursor: pointer; list-style: none;
+  font: 700 13px 'Hanken Grotesk', sans-serif; color: var(--muted);
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 0;
+}
+.update-method > summary::-webkit-details-marker { display: none; }
+.update-method > summary::before { content: '✎'; font-size: 12px; }
+.update-method[open] > summary { margin-bottom: 12px; }
 
 /* Form controls */
 .field-label { font: 700 12px 'Hanken Grotesk', sans-serif; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-2); }

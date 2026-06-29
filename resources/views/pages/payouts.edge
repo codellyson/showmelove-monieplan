@@ -30,50 +30,48 @@
       @end
 
       @if(isManaged)
-      <!-- ===== MANAGED (Khaime) ===== -->
+      <!-- ===== MANAGED PAYOUTS ===== -->
 
       <div class="balance-card">
         <div class="balance-label">Available to pay out</div>
         <div class="balance-value">{{ netLabel }}</div>
-        <div class="balance-sub">{{ grossLabel }} received · after Khaime's {{ commissionPct }}% fee</div>
+        <div class="balance-sub">{{ grossLabel }} received · after a {{ commissionPct }}% platform fee</div>
       </div>
 
       @if(!khaimeConfigured)
-      <div class="note-card">Managed payouts via <b>Khaime</b> aren't enabled in this environment yet — the flow below is wired and ready once keys are set.</div>
+      <div class="note-card">Managed payouts aren't enabled in this environment yet — the flow below is wired and ready once it's configured.</div>
       @end
 
       <!-- How you get paid -->
       <div class="panel">
         <div class="panel-head">
           <span class="panel-title">How you get paid</span>
-          @if(payoutReady)
-          <span class="kyc-badge is-ok">ready{{ settlementCurrency ? ' · ' + settlementCurrency : '' }}</span>
+          @if(payoutStatus === 'ready')
+          <span class="kyc-badge is-ok">connected{{ settlementCurrency ? ' · ' + settlementCurrency : '' }}</span>
+          @elseif(payoutStatus === 'action_needed')
+          <span class="kyc-badge is-warn">action needed</span>
+          @elseif(payoutStatus === 'pending')
+          <span class="kyc-badge is-pending">verifying…</span>
           @end
         </div>
-        @if(payoutMethod === 'bank')
-        <!-- African currency → local bank; Khaime verifies -->
-        <p class="panel-note">You earn in <b>{{ sym }} {{ creator.currency }}</b>, so you're paid to your local bank. Enter your details — Khaime verifies and settles them.</p>
-        <form method="POST" action="/payouts/bank" class="grid2">
-          {{ csrfField() }}
-          <div class="span2">
-            <label class="field-label">Bank</label>
-            <select class="select" name="settlement_bank">
-              @each(b in banks)
-              <option value="{{ b }}">{{ b }}</option>
-              @end
-            </select>
-          </div>
-          <div><label class="field-label">Account number</label><input class="text-input" name="account_number" inputmode="numeric" required></div>
-          <div><label class="field-label">Account name</label><input class="text-input" name="account_name" required></div>
-          <div class="span2"><button class="btn-primary" type="submit">Save payout bank</button></div>
-        </form>
+
+        @if(payoutStatus === 'ready')
+        <p class="panel-note is-ok">✓ You're all set — {{ payoutMethod === 'bank' ? 'paid straight to your local bank' : creator.currency + ' payouts are set up' }}{{ settlementCurrency ? ', settling in ' + settlementCurrency : '' }}. You can withdraw below.</p>
+        <details class="update-method">
+          <summary>Update payout details</summary>
+          @include('partials/payout_method_form')
+        </details>
         @else
-        <!-- Foreign currency → Khaime-managed Stripe -->
-        <p class="panel-note">You earn in <b>{{ sym }} {{ creator.currency }}</b>, so you're paid through a Khaime-managed Stripe account. You'll be redirected to a short setup — Khaime manages the account for you.</p>
-        <form method="POST" action="/payouts/stripe">
-          {{ csrfField() }}
-          <button class="btn-primary" type="submit">Set up {{ creator.currency }} payouts</button>
-        </form>
+          @if(payoutStatus === 'pending')
+          <p class="panel-note">We've received your details and are verifying them. This can take a few minutes; we'll mark this <b>connected</b> once it's done. Refresh to check.</p>
+          @elseif(payoutStatus === 'action_needed')
+          <p class="panel-note">We need a little more information before your payouts can go live. {{ payoutMethod === 'bank' ? 'Re-check your bank details below.' : 'Continue the setup below.' }}</p>
+          @elseif(payoutMethod === 'bank')
+          <p class="panel-note">You earn in <b>{{ sym }} {{ creator.currency }}</b>, so you're paid straight to your local bank. Enter your details and we'll verify and set everything up.</p>
+          @else
+          <p class="panel-note">You earn in <b>{{ sym }} {{ creator.currency }}</b>, so you're paid into a secure payout account. You'll be redirected to a short, one-time setup — we handle the rest.</p>
+          @end
+          @include('partials/payout_method_form')
         @end
       </div>
 
