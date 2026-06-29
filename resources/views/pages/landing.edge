@@ -16,7 +16,7 @@
           <span class="brand-name">showmelove</span>
         </a>
         <div class="nav-links">
-          <a class="nav-link" href="/{{ example ? example.handle : 'adabuilds' }}">See an example</a>
+          <a class="nav-link" href="{{ example ? '/' + example.handle : '/setup' }}">See an example</a>
           @include('partials/menu')
         </div>
       </header>
@@ -29,12 +29,12 @@
           <p class="hero-sub">A tip-jar page made for Naira. Go live in under a minute, share one link, and keep up to <strong>100%</strong> of every bit of love.</p>
           <div class="hero-cta">
             <a class="btn-primary btn-lg" href="/setup">Start your page — free</a>
-            <a class="btn-outline btn-lg" href="/{{ example ? example.handle : 'adabuilds' }}">See a live page</a>
+            <a class="btn-outline btn-lg" href="{{ example ? '/' + example.handle : '/setup' }}">See a live page</a>
           </div>
           <div class="hero-stats">
-            <div class="hstat"><div class="hstat-num">4,000+</div><div class="hstat-lbl">creators</div></div>
+            <div class="hstat"><div class="hstat-num">{{ platformCreators.toLocaleString('en-US') }}</div><div class="hstat-lbl">{{ platformCreators === 1 ? 'creator' : 'creators' }}</div></div>
             <div class="hstat-div"></div>
-            <div class="hstat"><div class="hstat-num">₦28M+</div><div class="hstat-lbl">raised</div></div>
+            <div class="hstat"><div class="hstat-num">{{ platformSupporters.toLocaleString('en-US') }}</div><div class="hstat-lbl">{{ platformSupporters === 1 ? 'supporter' : 'supporters' }}</div></div>
             <div class="hstat-div"></div>
             <div class="hstat"><div class="hstat-num">&lt;60s</div><div class="hstat-lbl">to go live</div></div>
           </div>
@@ -183,7 +183,7 @@
           <span class="brand-name" style="font-size:18px;">showmelove</span>
         </div>
         <div class="footer-links">
-          <a href="/{{ example ? example.handle : 'adabuilds' }}">Explore</a>
+          <a href="{{ example ? '/' + example.handle : '/setup' }}">Explore</a>
           <a href="/setup">Start a page</a>
           <a href="/dashboard">Dashboard</a>
           <a href="/connect">Connect</a>

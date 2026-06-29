@@ -27,7 +27,7 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   /*
   |----------------------------------------------------------
-  | Khaime — managed payouts partner (optional; mock used if unset)
+  | Khaime — managed payouts partner (optional; payments disabled if unset)
   |----------------------------------------------------------
   */
   KHAIME_API_KEY: Env.schema.string.optional(),

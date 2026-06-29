@@ -76,22 +76,6 @@
   border: 1.5px solid var(--ink); border-radius: 999px; padding: 4px 11px;
 }
 
-/* ---- Demo variant switcher ---- */
-.dash-variants {
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-  margin-bottom: 18px;
-}
-.dash-variants-label {
-  font: 700 11px 'Hanken Grotesk', sans-serif;
-  text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-3);
-}
-.dash-variants button {
-  border: 1.5px solid #D8CDB8; background: #fff;
-  border-radius: 999px; padding: 5px 12px; cursor: pointer;
-  font: 600 12px 'Hanken Grotesk', sans-serif; color: var(--muted);
-}
-.dash-variants button.is-on { border-color: var(--ink); background: var(--ink); color: #fff; }
-
 /* ---- Notes empty state ---- */
 .notes-empty { text-align: center; padding: 30px 12px 24px; }
 .notes-empty-icon {

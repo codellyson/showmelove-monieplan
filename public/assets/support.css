@@ -252,23 +252,6 @@
 }
 .state-action { margin-top: 22px; }
 
-/* ---- Demo state switcher ---- */
-.demo-states {
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-  margin-top: 20px; padding-top: 16px;
-  border-top: 1.5px dashed #D8CDB8;
-}
-.demo-states-label {
-  font: 700 11px 'Hanken Grotesk', sans-serif;
-  text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-3);
-}
-.demo-states button {
-  border: 1.5px solid #D8CDB8; background: #fff;
-  border-radius: 999px; padding: 5px 11px; cursor: pointer;
-  font: 600 12px 'Hanken Grotesk', sans-serif; color: var(--muted);
-}
-.demo-states button.is-on { border-color: var(--ink); background: var(--ink); color: #fff; }
-
 /* ---- Responsive ---- */
 @media (max-width: 920px) {
   .body-grid { grid-template-columns: 1fr; }

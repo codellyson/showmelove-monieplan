@@ -58,7 +58,6 @@ const stateEls = {
 };
 function showState(name) {
   STATES.forEach((s) => { stateEls[s].hidden = s !== name; });
-  $$('.demo-states button').forEach((b) => b.classList.toggle('is-on', b.dataset.state === name));
 }
 
 async function submit() {
@@ -77,17 +76,17 @@ async function submit() {
         message: $('#supportMessage')?.value || '',
       }),
     });
-    if (!res.ok) throw new Error('charge failed');
-    const data = await res.json();
-    // Managed (Khaime): redirect to the hosted checkout. Mock/BYO: settle inline.
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (data.error) { const sub = $('#errorSub'); if (sub) sub.textContent = data.error; }
+      throw new Error(data.error || 'charge failed');
+    }
+    // Managed (Khaime): go to the hosted checkout. Success is shown on return (?thanks=1).
     if (data.status === 'redirect' && data.checkoutUrl) {
       window.location.assign(data.checkoutUrl);
       return;
     }
-    const suffix = data.recurring ? ' / month' : '';
-    $('#successSub').innerHTML =
-      'Ada just got <strong>' + data.amountLabel + suffix + '</strong> from you. Thank you for backing the work.';
-    showState('success');
+    throw new Error('unexpected response');
   } catch (e) {
     showState('error');
   }
@@ -111,11 +110,7 @@ $('#supportCta').addEventListener('click', submit);
 $('#retryPay').addEventListener('click', submit);
 $('#sendAnother').addEventListener('click', () => showState('form'));
 
-// Demo switcher — preview each visual state without a real charge
-$$('.demo-states button').forEach((b) =>
-  b.addEventListener('click', () => showState(b.dataset.state))
-);
-
 renderAmounts();
 render();
-showState('form');
+// Back from the hosted checkout: show the thank-you (webhook records the payment).
+showState(new URLSearchParams(location.search).get('thanks') ? 'success' : 'form');

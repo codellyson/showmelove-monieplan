@@ -13,7 +13,7 @@ export default class Creator extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
-  /** Better Auth user id that owns this creator (null for the seeded demo). */
+  /** Better Auth user id that owns this creator. */
   @column()
   declare userId: string | null
 

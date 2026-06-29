@@ -142,7 +142,7 @@
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
             </div>
             <div class="state-title">Love sent! 🧡</div>
-            <div class="state-sub" id="successSub">Ada just got <strong>{{ v.sym }}2,000</strong> from you. Thank you for backing the work.</div>
+            <div class="state-sub" id="successSub">{{ v.creator.displayName }} just got your support. Thank you for backing the work.</div>
             <button class="btn-outline state-action" id="sendAnother">Send more love</button>
           </div>
 
@@ -152,17 +152,8 @@
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg>
             </div>
             <div class="state-title">Payment didn't go through</div>
-            <div class="state-sub">No money left your account. This happens sometimes — give it another try.</div>
+            <div class="state-sub" id="errorSub">No money left your account. This happens sometimes — give it another try.</div>
             <button class="support-cta state-action" id="retryPay">Try again</button>
-          </div>
-
-          <!-- Demo: preview each visual state -->
-          <div class="demo-states">
-            <span class="demo-states-label">Preview:</span>
-            <button data-state="form" class="is-on">Default</button>
-            <button data-state="processing">Processing</button>
-            <button data-state="success">Success</button>
-            <button data-state="error">Error</button>
           </div>
         </aside>
 

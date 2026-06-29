@@ -10,8 +10,8 @@ import type Creator from '#models/creator'
  * and a signed webhook confirms the payment. Amounts are in the smallest
  * currency unit (₦ -> kobo), so callers pass major units and we convert.
  *
- * If KHAIME_API_KEY is unset, isConfigured() is false and the app falls back to
- * the MockRail, so local dev works without credentials.
+ * If KHAIME_API_KEY is unset, isConfigured() is false; managed payments then
+ * return an honest "temporarily unavailable" rather than charging.
  */
 
 // Base includes the `/partner` segment; override via KHAIME_API_URL (e.g. khaimedev).

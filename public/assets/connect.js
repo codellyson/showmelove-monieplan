@@ -76,7 +76,7 @@ $('#connectPaystack').addEventListener('click', () => {
 $('#connectStripe').addEventListener('click', () => connect('stripe'));
 
 $('#switchBack').addEventListener('click', async () => {
-  try { await post('/connect/reset'); } catch (e) { /* ignore in demo */ }
+  try { await post('/connect/reset'); } catch (e) { /* non-fatal */ }
   $('#psPublic').value = '';
   $('#psSecret').value = '';
   selectProc('paystack');
