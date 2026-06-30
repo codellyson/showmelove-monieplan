@@ -8,6 +8,8 @@ export default class SettingsController {
     return view.render('pages/settings', {
       title: 'showmelove — Settings',
       pageCss: 'settings.css',
+      appShell: true,
+      activeNav: 'settings',
       brandColor: creator.brandColor,
       creator,
       currencies: Object.keys(CURRENCIES),

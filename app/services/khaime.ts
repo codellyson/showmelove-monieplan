@@ -27,7 +27,16 @@ export interface KhaimeMerchant {
 
 export interface KhaimeChargeResult {
   chargeId: string | null
+  /** 'paystack' (hosted redirect) or 'stripe' (client-side confirm). */
+  gateway: string | null
+  /** Paystack: hosted checkout URL to redirect the supporter to. */
   paymentUrl: string | null
+  /** Stripe: PaymentIntent client secret to confirm with Stripe.js. */
+  clientSecret: string | null
+  /** Stripe: publishable key for the connected account. */
+  publishableKey: string | null
+  /** Stripe: connected account the intent lives on. */
+  stripeAccountId: string | null
   raw: unknown
 }
 
@@ -90,7 +99,14 @@ export async function createCharge(input: {
   metadata?: Record<string, string | number | boolean>
 }): Promise<KhaimeChargeResult> {
   const amount = Math.round(input.amountMajor * MINOR_UNIT_FACTOR)
-  const data = await request<{ charge_id?: string; payment_url?: string }>('/payments/charge', {
+  const data = await request<{
+    charge_id?: string
+    payment_gateway?: string
+    payment_url?: string
+    client_secret?: string
+    publishable_key?: string
+    stripe_account_id?: string
+  }>('/payments/charge', {
     sub_merchant_id: input.subMerchantId,
     amount,
     currency: input.currency,
@@ -105,7 +121,15 @@ export async function createCharge(input: {
     },
     metadata: { partner_reference: input.reference, ...input.metadata },
   })
-  return { chargeId: data.charge_id ?? null, paymentUrl: data.payment_url ?? null, raw: data }
+  return {
+    chargeId: data.charge_id ?? null,
+    gateway: data.payment_gateway ?? null,
+    paymentUrl: data.payment_url ?? null,
+    clientSecret: data.client_secret ?? null,
+    publishableKey: data.publishable_key ?? null,
+    stripeAccountId: data.stripe_account_id ?? null,
+    raw: data,
+  }
 }
 
 /**

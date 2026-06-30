@@ -1,0 +1,68 @@
+/* App shell — the fixed frame shared by the authenticated creator area
+   (Home, Payouts, Settings). The frame fills the viewport; only .main scrolls,
+   so the sidebar stays put across pages. Loaded only on authed pages. */
+.page { padding: 30px; height: 100vh; display: flex; }
+.dash {
+  width: 100%;
+  max-width: 1200px; margin: 0 auto;
+  height: 100%;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  box-shadow: 7px 7px 0 var(--ink);
+}
+
+/* ---- Sidebar ---- */
+.side {
+  width: 248px; flex: none;
+  min-height: 0;
+  background: #FBF7EF;
+  border-right: 2px solid var(--ink);
+  padding: 26px 16px;
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+.side-brand { padding: 0 8px 24px; }
+.side-nav { display: flex; flex-direction: column; }
+.nav-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 12px; border-radius: 10px;
+  margin-bottom: 5px; cursor: pointer;
+  font: 500 15px 'Hanken Grotesk', sans-serif;
+  color: var(--muted);
+  border: 2px solid transparent;
+}
+.nav-item.is-active {
+  background: var(--brand); color: #fff;
+  border: 2px solid var(--ink);
+  font-weight: 700;
+}
+.side-spacer { flex: 1; }
+.side-user {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 8px;
+  border-top: 2px solid var(--ink);
+  margin-top: 8px;
+}
+.side-user-name { font: 700 14px 'Hanken Grotesk', sans-serif; }
+.side-user-handle { font: 500 12px 'Hanken Grotesk', sans-serif; color: var(--muted-3); }
+
+/* ---- Main (the only scrolling region) ---- */
+.main {
+  flex: 1; min-width: 0; min-height: 0;
+  padding: 32px 36px;
+  background: #FAF5EA;
+  overflow-y: auto;
+}
+
+/* ---- Responsive: revert the fixed shell to natural flow on small screens ---- */
+@media (max-width: 760px) {
+  .page { padding: 16px; height: auto; min-height: 100vh; display: block; }
+  .dash { flex-direction: column; height: auto; box-shadow: 4px 4px 0 var(--ink); }
+  .side { width: 100%; border-right: none; border-bottom: 2px solid var(--ink); overflow-y: visible; }
+  .side-nav { flex-direction: row; flex-wrap: wrap; }
+  .side-spacer { display: none; }
+  .main { padding: 24px; overflow-y: visible; }
+}

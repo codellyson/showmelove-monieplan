@@ -3,14 +3,6 @@
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
 
-// Sidebar nav highlight
-$$('.nav-item').forEach((item) =>
-  item.addEventListener('click', () => {
-    $$('.nav-item').forEach((i) => i.classList.remove('is-active'));
-    item.classList.add('is-active');
-  })
-);
-
 // Copy link
 const copyBtn = $('#copyBtn');
 if (copyBtn) {

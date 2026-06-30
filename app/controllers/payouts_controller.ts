@@ -65,6 +65,8 @@ export default class PayoutsController {
     return view.render('pages/payouts', {
       title: 'showmelove — Payouts',
       pageCss: 'payouts.css',
+      appShell: true,
+      activeNav: 'payouts',
       brandColor: creator.brandColor,
       creator,
       isManaged: creator.payoutMode === 'managed',

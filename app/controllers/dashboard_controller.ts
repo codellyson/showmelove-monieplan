@@ -15,6 +15,8 @@ export default class DashboardController {
     return view.render('pages/dashboard', {
       title: 'showmelove — Dashboard',
       pageCss: 'dashboard.css',
+      appShell: true,
+      activeNav: 'home',
       brandColor: v.creator.brandColor,
       v,
       ui,

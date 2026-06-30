@@ -27,7 +27,7 @@ export default class SupportController {
   /** A supporter sends love. Managed creators charge via Khaime (redirect to a
    *  hosted checkout, confirmed asynchronously by webhook). Bring-your-own
    *  charging isn't live yet — we return an honest error rather than fake it. */
-  async store({ params, request, response }: HttpContext) {
+  async store({ params, request, response, logger }: HttpContext) {
     const creator = await Creator.findBy('handle', params.handle)
     if (!creator) {
       return response.notFound({ error: 'Creator not found' })
@@ -74,7 +74,8 @@ export default class SupportController {
         recurring,
         metadata: { creator: creator.handle },
       })
-      if (!charge.paymentUrl) throw new Error('No checkout URL returned')
+      const isStripe = charge.gateway === 'stripe' && charge.clientSecret && charge.publishableKey
+      if (!charge.paymentUrl && !isStripe) throw new Error('No payable charge returned')
 
       // Record a pending support; the webhook flips it to succeeded.
       await Support.create({
@@ -87,8 +88,21 @@ export default class SupportController {
         status: 'pending',
         reference,
       })
+
+      // Stripe gateway (e.g. USD): confirm client-side with Stripe.js.
+      if (isStripe) {
+        return response.json({
+          status: 'stripe',
+          clientSecret: charge.clientSecret,
+          publishableKey: charge.publishableKey,
+          stripeAccountId: charge.stripeAccountId,
+          returnUrl: `${origin}/${creator.handle}?thanks=1`,
+        })
+      }
+      // Paystack gateway (e.g. NGN): redirect to the hosted checkout.
       return response.json({ status: 'redirect', checkoutUrl: charge.paymentUrl })
     } catch (e) {
+      logger.error({ err: e, creator: creator.handle, reference }, 'Khaime charge failed')
       return response
         .status(502)
         .json({ status: 'failed', error: 'Could not start checkout. Please try again.' })

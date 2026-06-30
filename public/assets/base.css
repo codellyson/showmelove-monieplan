@@ -13,7 +13,13 @@
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; }
+/* Base font + a real sans-serif fallback stack, so if the web font is slow or
+   blocked, text degrades to the system sans — never the UA serif (Times). */
+body {
+  margin: 0;
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  color: var(--ink);
+}
 /* The `hidden` attribute must win over component `display` rules
    (e.g. .stage-center/.support-state use display:flex, which would otherwise
    override the UA [hidden]{display:none} at equal specificity). */
@@ -27,7 +33,7 @@ a { color: inherit; text-decoration: none; }
   background: var(--bg);
   background-image: radial-gradient(rgba(28,23,20,0.035) 1px, transparent 1px);
   background-size: 5px 5px;
-  font-family: 'Hanken Grotesk', sans-serif;
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   color: var(--ink);
 }
 

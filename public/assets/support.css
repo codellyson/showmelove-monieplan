@@ -252,6 +252,21 @@
 }
 .state-action { margin-top: 22px; }
 
+/* ---- Stripe payment state ---- */
+#supportPayment { text-align: left; }
+#supportPayment .state-title, #supportPayment .state-sub { text-align: center; }
+#payment-element { margin: 18px 0 14px; }
+#supportPayment .state-action { margin-top: 6px; width: 100%; }
+.pay-error {
+  color: #B23A28; background: #FBE6E2; border: 1.5px solid #B23A28;
+  border-radius: 10px; padding: 9px 12px; margin-bottom: 12px;
+  font: 600 13px 'Hanken Grotesk', sans-serif;
+}
+.pay-cancel {
+  display: block; margin: 10px auto 0; background: none; border: none; cursor: pointer;
+  font: 600 13px 'Hanken Grotesk', sans-serif; color: var(--muted); text-decoration: underline;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 920px) {
   .body-grid { grid-template-columns: 1fr; }
