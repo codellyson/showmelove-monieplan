@@ -1,0 +1,38 @@
+/* Supporters page — the full list of love notes, inside the app shell. */
+.supporters-wrap { max-width: 720px; }
+
+.supporters-head { margin-bottom: 24px; }
+.supporters-title { font: 800 34px 'Bricolage Grotesque', sans-serif; letter-spacing: -0.03em; margin: 0; }
+.supporters-sub { font: 500 15px 'Hanken Grotesk', sans-serif; color: var(--muted); margin: 8px 0 0; }
+
+.supporter-list { display: flex; flex-direction: column; gap: 14px; }
+.supporter-card {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: #fff; border: 2px solid var(--ink); border-radius: 16px;
+  padding: 16px 18px; box-shadow: 3px 3px 0 var(--ink);
+}
+.supporter-body { flex: 1; min-width: 0; }
+.supporter-line { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.supporter-name { font: 700 16px 'Hanken Grotesk', sans-serif; }
+.supporter-amount {
+  font: 800 17px 'Bricolage Grotesque', sans-serif; letter-spacing: -0.01em;
+  white-space: nowrap; flex: none;
+}
+.supporter-time { font: 500 12px 'Hanken Grotesk', sans-serif; color: var(--muted-3); margin-top: 2px; }
+.supporter-message {
+  font: 500 14px/1.5 'Hanken Grotesk', sans-serif; color: #5C5343;
+  margin: 10px 0 0; padding-top: 10px; border-top: 1.5px solid var(--bg);
+}
+
+/* Empty state */
+.supporters-empty {
+  text-align: center; background: #fff; border: 2px dashed var(--ink);
+  border-radius: 18px; padding: 48px 24px;
+}
+.supporters-empty-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: #FFE7DF; border: 2px solid var(--ink);
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 18px;
+}
+.supporters-empty-title { font: 800 20px 'Bricolage Grotesque', sans-serif; letter-spacing: -0.02em; }
+.supporters-empty-sub { font: 500 14px/1.5 'Hanken Grotesk', sans-serif; color: var(--muted); margin-top: 6px; }
