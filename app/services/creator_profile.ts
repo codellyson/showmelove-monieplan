@@ -28,7 +28,10 @@ export async function applyProfile(creator: Creator, input: ProfileInput): Promi
   const displayName = String(input.displayName ?? '').trim()
   const bio = String(input.bio ?? '').trim()
   const currency = String(input.currency ?? 'NGN').toUpperCase()
-  const monthlyGoal = Math.max(0, Number(String(input.monthlyGoal ?? '').replace(/[^0-9]/g, '')) || 0)
+  const monthlyGoal = Math.max(
+    0,
+    Number(String(input.monthlyGoal ?? '').replace(/[^0-9]/g, '')) || 0
+  )
   const handle = String(input.handle ?? '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '')
