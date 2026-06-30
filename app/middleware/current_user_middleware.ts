@@ -33,9 +33,14 @@ export default class CurrentUserMiddleware {
       }
     }
 
+    // Page links follow the origin we're actually served on: localhost in dev,
+    // the real domain once one is configured — no hardcoded host.
+    const host = ctx.request.host() || 'showmelove.com'
+    const origin = `${ctx.request.protocol()}://${host}`
+
     ctx.user = user
     ctx.creator = creator
-    ctx.view.share({ user, creator })
+    ctx.view.share({ user, creator, origin, siteHost: host })
 
     return next()
   }
