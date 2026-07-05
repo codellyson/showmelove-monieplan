@@ -10,6 +10,14 @@ export default defineConfig({
   plugins: [
     adonisjs({
       /**
+       * Where Vite writes its bundle + manifest. Must match `buildDirectory`
+       * in config/vite.ts (the runtime reader). Kept in a dedicated `vite/`
+       * subfolder because the plugin empties this dir on every build, and our
+       * hand-written design system lives in the sibling `public/assets`.
+       */
+      buildDirectory: 'public/assets/vite',
+
+      /**
        * Entrypoints of your application. Each entrypoint will
        * result in a separate bundle.
        */

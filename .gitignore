@@ -11,7 +11,8 @@ tmp
 
 # Vite build output only — our hand-written design system also lives in
 # public/assets and must be tracked, so don't ignore the whole folder.
-public/assets/.vite
+# Vite writes to a dedicated subfolder it's allowed to wipe on each build.
+public/assets/vite
 
 # Build tools specific
 npm-debug.log

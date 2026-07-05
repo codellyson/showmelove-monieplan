@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth'
 import Database from 'better-sqlite3'
 import { fileURLToPath } from 'node:url'
+import { sendEmail, actionEmailHtml } from './email.js'
 
 /**
  * Better Auth instance.
@@ -17,29 +18,38 @@ const dbPath = fileURLToPath(new URL('../../tmp/db.sqlite3', import.meta.url))
 const db = new Database(dbPath)
 db.pragma('journal_mode = WAL')
 
-/**
- * Dev "mail" transport: log the link to the server console. Swap this for a
- * real provider (Resend/SMTP/Cloudflare) in production — nothing else changes.
- */
-function sendDevEmail(kind: string, to: string, url: string) {
-  // eslint-disable-next-line no-console
-  console.log(`\n📧 [${kind}] for ${to}\n   ${url}\n`)
-}
-
 export const auth = betterAuth({
   database: db,
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
     sendResetPassword: async ({ user, url }) => {
-      sendDevEmail('PASSWORD RESET', user.email, url)
+      await sendEmail({
+        to: user.email,
+        subject: 'Reset your Show Me Love password',
+        html: actionEmailHtml({
+          heading: 'Reset your password',
+          intro: 'We received a request to reset your Show Me Love password. Click the button below to choose a new one.',
+          label: 'Reset password',
+          url,
+        }),
+      })
     },
   },
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
-      sendDevEmail('VERIFY EMAIL', user.email, url)
+      await sendEmail({
+        to: user.email,
+        subject: 'Verify your email for Show Me Love',
+        html: actionEmailHtml({
+          heading: 'Confirm your email',
+          intro: 'Welcome to Show Me Love! Please confirm your email address to activate your account.',
+          label: 'Verify email',
+          url,
+        }),
+      })
     },
   },
   secret: process.env.APP_KEY,

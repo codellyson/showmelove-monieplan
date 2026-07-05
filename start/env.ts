@@ -35,4 +35,14 @@ export default await Env.create(new URL('../', import.meta.url), {
   KHAIME_WEBHOOK_SECRET: Env.schema.string.optional(),
   KHAIME_COMMISSION_RATE: Env.schema.number.optional(),
   APP_URL: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Brevo — transactional email (auth verification + password reset).
+  | If unset, emails are logged to the console instead of sent.
+  |----------------------------------------------------------
+  */
+  BREVO_API_KEY: Env.schema.string.optional(),
+  MAIL_FROM_EMAIL: Env.schema.string.optional(),
+  MAIL_FROM_NAME: Env.schema.string.optional(),
 })
