@@ -44,7 +44,7 @@ creator accounts, and plain CSS/JS from `public/assets`.
 - **Payers in currencies other than the creator's own or USD.**
   `PAY_CURRENCIES` is `['USD']`; there is no general currency picker.
 - **Polling for payment status.** No job checks Khaime; a lost webhook means the
-  support stays `pending` until someone reads `GET /partner/transactions/:id`.
+  support stays `pending` until someone reads `GET /transactions/:id`.
 - **Supporter accounts.** Supporters are anonymous or name-only; only creators
   sign in.
 - **Seed data.** The README mentions `node ace db:seed`, but there are no

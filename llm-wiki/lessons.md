@@ -21,7 +21,7 @@
   for the user to do; don't enter account numbers yourself.
 - **Local webhooks need a tunnel.** Khaime posts to the URL registered for the
   partner key, not to localhost. Without a tunnel, tips stay `pending`; check
-  the payment through `GET /partner/transactions/:id` instead.
+  the payment through `GET /transactions/:id` instead.
 - **The README's `node ace db:seed` is stale.** No seeders are committed; a new
   database starts empty and creators appear on first sign-in.
 - **Unit mistakes are silent.** Khaime takes minor units, `/pricing/calculate`

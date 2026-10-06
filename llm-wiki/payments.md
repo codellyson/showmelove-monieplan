@@ -6,9 +6,12 @@ showmelove takes a commission on every tip.
 
 ## Configuration
 
-- `KHAIME_API_URL`: base URL, **already including `/partner`**. Defaults to
-  production (`https://api.khaime.com/api/v1/partner`); local `.env` points at
-  `api.khaimedev.com`.
+- `KHAIME_API_URL`: base URL, the **bare `/api/v1` prefix** (no `/partner`
+  segment). Defaults to production (`https://api.khaime.com/api/v1`); local
+  `.env` points at `api.khaimedev.com/api/v1`. Khaime moved its partner API
+  there in October 2026; the old `/api/v1/partner/marketplace/...` paths now
+  return 404 "Route not exist", which `ensureMerchant` swallows, so the symptom
+  is a creator that never gets a `khaimeMerchantId`.
 - `KHAIME_API_KEY`: partner key, sent as `X-API-Key`. If unset,
   `isConfigured()` is false and managed payments return 503 instead of charging.
 - `KHAIME_WEBHOOK_SECRET`: verifies webhooks.
@@ -26,10 +29,10 @@ login email is already a Khaime account and can't also be a sub-merchant.
 A sub-merchant **can't be charged until its payout is configured**; Khaime
 rejects the charge with `MARKETPLACE_SUB_MERCHANT_PAYOUT_NOT_CONFIGURED`.
 Payout setup is on `/payouts`: NGN-style currencies post bank details to
-`/marketplace/merchants/:id/payout` (bank names must match
-`/marketplace/payout/banks` exactly); others start Stripe Connect onboarding via
-`/marketplace/merchants/:id/kyc`. Withdrawals go through
-`/marketplace/merchants/:id/payouts` and are staged for approval.
+`/merchants/:id/payout` (bank names must match
+`/payout/banks` exactly); others start Stripe Connect onboarding via
+`/merchants/:id/kyc`. Withdrawals go through
+`/merchants/:id/payouts` and are staged for approval.
 
 ## Charging a tip
 
@@ -72,7 +75,7 @@ before verifying, or re-serialising it, breaks every signature.
   `payout_ready`, plus provider, Stripe account and settlement currency.
 
 Khaime only reaches a local server through a tunnel. Without one, read a payment
-with `GET /partner/transactions/:id`, which returns the same payment object as
+with `GET /transactions/:id`, which returns the same payment object as
 the webhook.
 
 ## The marketplace split
