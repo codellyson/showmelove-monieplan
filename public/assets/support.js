@@ -11,7 +11,7 @@ const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
 const LARGE_UNIT = ['NGN', 'GHS', 'KES', 'ZAR', 'TZS', 'XAF', 'XOF'];
 const AMOUNTS = LARGE_UNIT.includes(CURRENCY) ? [1000, 2000, 5000, 10000] : [5, 10, 25, 50];
 
-const state = { freq: 'once', amount: AMOUNTS[1], custom: '' };
+const state = { freq: 'once', amount: AMOUNTS[1], custom: '', pay: CURRENCY };
 
 const $  = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
@@ -44,12 +44,16 @@ function render() {
   $$('.amount-btn').forEach((b, i) => {
     b.classList.toggle('is-selected', !state.custom && state.amount === AMOUNTS[i]);
   });
-  $$('.freq-btn').forEach((b) => {
+  $$('.freq-btn[data-freq]').forEach((b) => {
     b.classList.toggle('is-active', b.dataset.freq === state.freq);
+  });
+  $$('.pay-btn').forEach((b) => {
+    b.classList.toggle('is-active', b.dataset.pay === state.pay);
   });
   const amt = currentAmount();
   const suffix = state.freq === 'monthly' ? '/mo' : '';
-  $('#ctaLabel').textContent = 'Send ' + fmt(amt || 0) + suffix + ' of love';
+  const payNote = state.pay !== CURRENCY ? ' (paid in ' + state.pay + ')' : '';
+  $('#ctaLabel').textContent = 'Send ' + fmt(amt || 0) + suffix + ' of love' + payNote;
 }
 
 // ---- Card state machine: form / processing / payment / success / error ----
@@ -88,6 +92,7 @@ async function submit() {
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
       body: JSON.stringify({
         amount,
+        payCurrency: state.pay,
         recurring: state.freq === 'monthly',
         supporterName: $('#supportName')?.value || '',
         email: $('#supportEmail')?.value || '',
@@ -116,8 +121,11 @@ async function submit() {
 }
 
 // ---- Events ----
-$$('.freq-btn').forEach((b) =>
+$$('.freq-btn[data-freq]').forEach((b) =>
   b.addEventListener('click', () => { state.freq = b.dataset.freq; render(); })
+);
+$$('.pay-btn').forEach((b) =>
+  b.addEventListener('click', () => { state.pay = b.dataset.pay; render(); })
 );
 
 const customInput = $('#customInput');

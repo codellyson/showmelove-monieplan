@@ -25,7 +25,7 @@ export default class WebhooksController {
       event_type?: string
       data?: {
         partner_reference?: string
-        metadata?: { partner_reference?: string }
+        metadata?: { partner_reference?: string } & Record<string, any>
         merchant_id?: string | number
         id?: string | number
         status?: string
@@ -46,8 +46,18 @@ export default class WebhooksController {
           const next = type === 'payment.succeeded' ? 'succeeded' : 'failed'
           if (support.status !== next && support.status !== 'succeeded') {
             support.status = next
-            await support.save()
           }
+          const split = khaime.marketplaceSplitFrom(data.metadata)
+          if (split) {
+            support.khaimeSplit = JSON.stringify(split)
+            if (split.mismatches.length) {
+              logger.warn(
+                { reference, mismatches: split.mismatches, split },
+                'Khaime marketplace split: top-level fields disagree with marketplace_settlement'
+              )
+            }
+          }
+          await support.save()
         }
       }
     } else if (type === 'account.updated') {

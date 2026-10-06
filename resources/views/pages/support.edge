@@ -115,6 +115,13 @@
               <input id="customInput" inputmode="numeric" placeholder="Other amount" class="custom-input">
             </div>
 
+            @if(!v.isByo && v.creator.currency !== 'USD')
+            <div class="freq pay-in" role="tablist" aria-label="Pay in">
+              <button class="freq-btn pay-btn is-active" data-pay="{{ v.creator.currency }}">Pay in {{ v.creator.currency }}</button>
+              <button class="freq-btn pay-btn" data-pay="USD">Pay in USD</button>
+            </div>
+            @end
+
             <input id="supportName" class="message" placeholder="Your name (optional — leave blank to stay anonymous)" autocomplete="name" maxlength="40" style="margin-bottom:12px;">
             <input id="supportEmail" class="message" type="email" placeholder="Email (for your receipt)" autocomplete="email" maxlength="120" style="margin-bottom:12px;">
             <input id="supportMessage" class="message" placeholder="Say something nice (optional)" maxlength="280">

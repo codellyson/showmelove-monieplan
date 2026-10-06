@@ -4,6 +4,9 @@ import Support from '#models/support'
 import { presentCreator } from '#services/creator_presenter'
 import * as khaime from '#services/khaime'
 
+/** Currencies a supporter can pay in besides the creator's own. */
+export const PAY_CURRENCIES = ['USD']
+
 function makeReference(): string {
   return 'sml_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
 }
@@ -38,9 +41,13 @@ export default class SupportController {
     const rawName = String(request.input('supporterName', '')).trim()
     const rawMessage = String(request.input('message', '')).trim()
     const rawEmail = String(request.input('email', '')).trim()
+    const payCurrency = String(request.input('payCurrency', creator.currency)).trim().toUpperCase()
 
     if (!amount) {
       return response.badRequest({ error: 'Pick an amount' })
+    }
+    if (!PAY_CURRENCIES.includes(payCurrency) && payCurrency !== creator.currency) {
+      return response.badRequest({ error: 'Unsupported currency' })
     }
 
     // Bring-your-own: charging on the creator's own processor isn't built yet.
@@ -66,7 +73,8 @@ export default class SupportController {
       const charge = await khaime.createCharge({
         subMerchantId: Number(creator.khaimeMerchantId),
         amountMajor: amount,
-        currency: creator.currency,
+        merchantCurrency: creator.currency,
+        chargeCurrency: payCurrency,
         reference,
         customerEmail: rawEmail || `supporter+${reference}@showmelove.app`,
         customerName: rawName || null,
@@ -84,6 +92,8 @@ export default class SupportController {
         message: rawMessage || null,
         amount,
         currency: creator.currency,
+        chargeAmount: charge.chargeAmount,
+        chargeCurrency: charge.chargeCurrency,
         recurring,
         status: 'pending',
         reference,

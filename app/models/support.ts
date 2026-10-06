@@ -33,6 +33,17 @@ export default class Support extends BaseModel {
   @column()
   declare status: SupportStatus
 
+  /** Amount charged to the supporter, in minor units of chargeCurrency. */
+  @column()
+  declare chargeAmount: number | null
+
+  @column()
+  declare chargeCurrency: string | null
+
+  /** Marketplace split from Khaime's payment.succeeded webhook, as JSON. */
+  @column()
+  declare khaimeSplit: string | null
+
   /** Reference returned by the payment rail. */
   @column()
   declare reference: string

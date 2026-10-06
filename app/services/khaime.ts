@@ -86,19 +86,65 @@ export async function createMerchant(input: {
   })
 }
 
-/** Create a marketplace charge for a supporter tip. Returns the hosted checkout URL. */
+function toMinor(amountMajor: number): number {
+  return Math.round(amountMajor * MINOR_UNIT_FACTOR)
+}
+
+/** Convert a creator-currency amount into the supporter's currency (major units). */
+export async function quoteChargeAmount(input: {
+  subMerchantId: number
+  amountMajor: number
+  merchantCurrency: string
+  chargeCurrency: string
+}): Promise<number> {
+  const query = new URLSearchParams({
+    amount: String(input.amountMajor),
+    source_currency: input.merchantCurrency,
+    target_currency: input.chargeCurrency,
+    sub_merchant_id: String(input.subMerchantId),
+  })
+  const data = await send<{ pricing?: { local?: { amount?: number; currency?: string } } }>(
+    'GET',
+    `/pricing/calculate?${query}`
+  )
+  const local = data?.pricing?.local
+  if (!local?.amount || local.currency?.toUpperCase() !== input.chargeCurrency.toUpperCase()) {
+    throw new Error(`Khaime could not price ${input.merchantCurrency} in ${input.chargeCurrency}`)
+  }
+  return local.amount
+}
+
+/**
+ * Create a marketplace charge for a supporter tip. `amountMajor` is what the creator is owed, in
+ * the creator's currency; the supporter may pay in another currency, priced via /pricing/calculate.
+ */
 export async function createCharge(input: {
   subMerchantId: number
   amountMajor: number
-  currency: string
+  merchantCurrency: string
+  chargeCurrency: string
   reference: string
   customerEmail: string
   customerName?: string | null
   redirectUrl: string
   recurring?: boolean
   metadata?: Record<string, string | number | boolean>
-}): Promise<KhaimeChargeResult> {
-  const amount = Math.round(input.amountMajor * MINOR_UNIT_FACTOR)
+}): Promise<KhaimeChargeResult & { chargeAmount: number; chargeCurrency: string }> {
+  const merchantCurrency = input.merchantCurrency.toUpperCase()
+  const chargeCurrency = input.chargeCurrency.toUpperCase()
+  const merchantAmount = toMinor(input.amountMajor)
+  const isCrossCurrency = chargeCurrency !== merchantCurrency
+  const chargeAmount = isCrossCurrency
+    ? toMinor(
+        await quoteChargeAmount({
+          subMerchantId: input.subMerchantId,
+          amountMajor: input.amountMajor,
+          merchantCurrency,
+          chargeCurrency,
+        })
+      )
+    : merchantAmount
+
   const data = await request<{
     charge_id?: string
     payment_gateway?: string
@@ -108,10 +154,14 @@ export async function createCharge(input: {
     stripe_account_id?: string
   }>('/payments/charge', {
     sub_merchant_id: input.subMerchantId,
-    amount,
-    currency: input.currency,
-    total_amount: amount,
-    total_currency: input.currency,
+    charge_amount: chargeAmount,
+    charge_currency: chargeCurrency,
+    merchant_amount: merchantAmount,
+    merchant_currency: merchantCurrency,
+    ...(isCrossCurrency && {
+      converted_total_amount: chargeAmount,
+      converted_total_currency: chargeCurrency,
+    }),
     description: input.customerName ? `Support from ${input.customerName}` : 'Support tip',
     reference: input.reference,
     redirect_url: input.redirectUrl,
@@ -128,8 +178,63 @@ export async function createCharge(input: {
     clientSecret: data.client_secret ?? null,
     publishableKey: data.publishable_key ?? null,
     stripeAccountId: data.stripe_account_id ?? null,
+    chargeAmount,
+    chargeCurrency,
     raw: data,
   }
+}
+
+const SPLIT_KEYS = [
+  'marketplace_commission_rate',
+  'marketplace_gross_amount',
+  'marketplace_gross_commission_amount',
+  'marketplace_commission_amount',
+  'marketplace_sub_merchant_net_amount',
+  'marketplace_fee_absorbed_by_operator',
+  'marketplace_split_currency',
+] as const
+
+export interface MarketplaceSplit {
+  reported: Partial<Record<(typeof SPLIT_KEYS)[number], string>>
+  settlement: Record<string, unknown> | null
+  mismatches: string[]
+}
+
+/**
+ * Pull the split Khaime reports on a payment: the top-level marketplace_* fields and the
+ * marketplace_settlement block, and list where the two disagree.
+ */
+export function marketplaceSplitFrom(metadata: Record<string, any> | undefined): MarketplaceSplit | null {
+  if (!metadata) return null
+  const reported: MarketplaceSplit['reported'] = {}
+  for (const key of SPLIT_KEYS) {
+    if (metadata[key] !== undefined && metadata[key] !== null) reported[key] = String(metadata[key])
+  }
+  const settlement = (metadata.marketplace_settlement as Record<string, unknown> | undefined) ?? null
+  if (!Object.keys(reported).length && !settlement) return null
+
+  const mismatches: string[] = []
+  if (settlement) {
+    const pairs: Array<[keyof MarketplaceSplit['reported'], string]> = [
+      ['marketplace_commission_amount', 'marketplace_commission_amount'],
+      ['marketplace_sub_merchant_net_amount', 'sub_merchant_net_amount'],
+      ['marketplace_split_currency', 'gross_product_currency'],
+    ]
+    for (const [top, inner] of pairs) {
+      const a = reported[top]
+      const b = settlement[inner]
+      if (a !== undefined && b !== undefined && String(a).toUpperCase() !== String(b).toUpperCase()) {
+        mismatches.push(`${top}=${a} but marketplace_settlement.${inner}=${b}`)
+      }
+    }
+    const absorbed = Number(reported.marketplace_fee_absorbed_by_operator ?? 0)
+    if (absorbed > 0) {
+      mismatches.push(
+        `marketplace_fee_absorbed_by_operator=${absorbed} but settlement deducted the fee from the sub-merchant`
+      )
+    }
+  }
+  return { reported, settlement, mismatches }
 }
 
 /**
