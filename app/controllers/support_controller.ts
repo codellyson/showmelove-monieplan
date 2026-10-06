@@ -82,6 +82,10 @@ export default class SupportController {
         recurring,
         metadata: { creator: creator.handle },
       })
+      logger.info(
+        { reference, transactionId: charge.transactionId, gateway: charge.gateway },
+        'Khaime charge created'
+      )
       const isStripe = charge.gateway === 'stripe' && charge.clientSecret && charge.publishableKey
       if (!charge.paymentUrl && !isStripe) throw new Error('No payable charge returned')
 

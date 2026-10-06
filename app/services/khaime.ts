@@ -14,8 +14,8 @@ import type Creator from '#models/creator'
  * return an honest "temporarily unavailable" rather than charging.
  */
 
-// Base includes the `/partner` segment; override via KHAIME_API_URL (e.g. khaimedev).
-const BASE_URL = env.get('KHAIME_API_URL') ?? 'https://api.khaime.com/api/v1/partner'
+// The partner API lives at the bare /api/v1 prefix; override via KHAIME_API_URL (e.g. khaimedev).
+const BASE_URL = env.get('KHAIME_API_URL') ?? 'https://api.khaime.com/api/v1'
 const MINOR_UNIT_FACTOR = 100 // NGN/USD/GBP all use 100 minor units
 
 export interface KhaimeMerchant {
@@ -78,12 +78,35 @@ export async function createMerchant(input: {
   businessEmail: string
   country?: string
 }): Promise<KhaimeMerchant> {
-  return request<KhaimeMerchant>('/marketplace/merchants', {
+  return request<KhaimeMerchant>('/merchants', {
     business_name: input.businessName,
     business_email: input.businessEmail,
     business_country: input.country ?? 'NG',
     commission_rate: commissionRate(),
   })
+}
+
+interface CheckoutToken {
+  payment_gateway?: string
+  client_secret?: string
+  publishable_key?: string
+  authorization_url?: string
+  access_code?: string
+  metadata?: { stripe_account_id?: string }
+}
+
+/**
+ * The charge returns a checkout `token` (base64 JSON payload + "." + signature) instead of raw
+ * gateway fields. Khaime's SDK reads the payload client-side the same way; the signature is
+ * verified by Khaime, not here.
+ */
+function decodeCheckoutToken(token: string): CheckoutToken | null {
+  try {
+    const payload = token.split('.')[0]
+    return JSON.parse(Buffer.from(payload, 'base64').toString('utf8')) as CheckoutToken
+  } catch {
+    return null
+  }
 }
 
 function toMinor(amountMajor: number): number {
@@ -129,7 +152,9 @@ export async function createCharge(input: {
   redirectUrl: string
   recurring?: boolean
   metadata?: Record<string, string | number | boolean>
-}): Promise<KhaimeChargeResult & { chargeAmount: number; chargeCurrency: string }> {
+}): Promise<
+  KhaimeChargeResult & { transactionId: string | null; chargeAmount: number; chargeCurrency: string }
+> {
   const merchantCurrency = input.merchantCurrency.toUpperCase()
   const chargeCurrency = input.chargeCurrency.toUpperCase()
   const merchantAmount = toMinor(input.amountMajor)
@@ -146,12 +171,9 @@ export async function createCharge(input: {
     : merchantAmount
 
   const data = await request<{
+    token?: string
     charge_id?: string
-    payment_gateway?: string
-    payment_url?: string
-    client_secret?: string
-    publishable_key?: string
-    stripe_account_id?: string
+    transaction_id?: string
   }>('/payments/charge', {
     sub_merchant_id: input.subMerchantId,
     charge_amount: chargeAmount,
@@ -171,13 +193,17 @@ export async function createCharge(input: {
     },
     metadata: { partner_reference: input.reference, ...input.metadata },
   })
+  const checkout = data.token ? decodeCheckoutToken(data.token) : null
   return {
     chargeId: data.charge_id ?? null,
-    gateway: data.payment_gateway ?? null,
-    paymentUrl: data.payment_url ?? null,
-    clientSecret: data.client_secret ?? null,
-    publishableKey: data.publishable_key ?? null,
-    stripeAccountId: data.stripe_account_id ?? null,
+    transactionId: data.transaction_id ?? null,
+    gateway: checkout?.payment_gateway ?? null,
+    paymentUrl:
+      checkout?.authorization_url ??
+      (checkout?.access_code ? `https://checkout.paystack.com/${checkout.access_code}` : null),
+    clientSecret: checkout?.client_secret ?? null,
+    publishableKey: checkout?.publishable_key ?? null,
+    stripeAccountId: checkout?.metadata?.stripe_account_id ?? null,
     chargeAmount,
     chargeCurrency,
     raw: data,
@@ -285,7 +311,7 @@ async function provisionMerchantId(name: string, handle: string, email: string):
 
 /** Find an existing sub-merchant id by its email (for re-linking). */
 export async function findMerchantIdByEmail(email: string): Promise<string | null> {
-  const data = await send<any>('GET', '/marketplace/merchants')
+  const data = await send<any>('GET', '/merchants')
   const rows: any[] = Array.isArray(data) ? data : (data?.merchants ?? data?.items ?? [])
   const wanted = email.trim().toLowerCase()
   for (const row of rows) {
@@ -316,7 +342,7 @@ export interface KhaimeMerchantDetails {
 
 /** Fetch a sub-merchant (KYC + payout status). */
 export function getMerchant(merchantId: string): Promise<KhaimeMerchantDetails> {
-  return send<KhaimeMerchantDetails>('GET', `/marketplace/merchants/${merchantId}`)
+  return send<KhaimeMerchantDetails>('GET', `/merchants/${merchantId}`)
 }
 
 export type PayoutSetupStatus = 'pending' | 'action_needed' | 'ready' | null
@@ -349,7 +375,7 @@ export function setupNairaPayout(
   merchantId: string,
   input: { settlementBank: string; accountNumber: string; accountName: string }
 ): Promise<unknown> {
-  return send('POST', `/marketplace/merchants/${merchantId}/payout`, {
+  return send('POST', `/merchants/${merchantId}/payout`, {
     country: 'NG',
     settlement_bank: input.settlementBank,
     account_number: input.accountNumber,
@@ -361,7 +387,7 @@ export function setupNairaPayout(
 export async function getPayoutBanks(currency = 'NGN'): Promise<string[]> {
   const data = await send<Array<{ name: string }>>(
     'GET',
-    `/marketplace/payout/banks?currency=${encodeURIComponent(currency)}`
+    `/payout/banks?currency=${encodeURIComponent(currency)}`
   )
   return (data || []).map((b) => b.name)
 }
@@ -374,7 +400,7 @@ export function connectStripePayout(
   merchantId: string,
   input: { country: string; returnUrl: string; refreshUrl: string }
 ): Promise<{ onboarding_url?: string; stripe_account_id?: string; settlement_currency?: string }> {
-  return send('POST', `/marketplace/merchants/${merchantId}/kyc`, {
+  return send('POST', `/merchants/${merchantId}/kyc`, {
     country: input.country,
     return_url: input.returnUrl,
     refresh_url: input.refreshUrl,
@@ -386,7 +412,7 @@ export function initiatePayout(
   merchantId: string,
   input: { amountMajor: number; currency: string; description?: string }
 ): Promise<{ payout_request_id?: string; status?: string; remaining_balance?: number }> {
-  return send('POST', `/marketplace/merchants/${merchantId}/payouts`, {
+  return send('POST', `/merchants/${merchantId}/payouts`, {
     amount: Math.round(input.amountMajor * MINOR_UNIT_FACTOR),
     currency: input.currency,
     description: input.description,
