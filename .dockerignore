@@ -20,6 +20,10 @@ tmp
 .vscode
 .DS_Store
 
+# The Cloudflare Workers port deploys separately with wrangler. Keep it (and its
+# .dev.vars secrets, local D1 state and node_modules) out of the image.
+worker
+
 # Misc
 _design_reference
 npm-debug.log
