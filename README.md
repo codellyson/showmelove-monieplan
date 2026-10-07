@@ -61,7 +61,8 @@ landing page.
 
 ## Notes
 
-- Brand color is server-set per creator (`--brand`) and themeable via the floating
-  picker (persisted in `localStorage`).
+- Brand color is server-set per creator (`--brand`). The floating picker appears
+  only on the creator's own pages and saves the choice to the creator
+  (`POST /brand`); visitors can't recolor a page.
 - `_design_reference/` holds the original static HTML/CSS/JS the views were ported from.
 - Monthly support is managed-mode only in v1; bring-your-own pages are one-time.

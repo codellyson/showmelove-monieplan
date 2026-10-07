@@ -91,3 +91,13 @@
   `auth-reset.js` validate in the browser first and map error `code`s
   (`INVALID_EMAIL_OR_PASSWORD`, `USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL`, …) to
   plain messages, with a generic fallback.
+- **The brand picker is for owners only.** It used to render on every page and
+  keep a per-browser pick in `localStorage` that beat the server's `--brand`,
+  so a visitor who clicked a swatch saw every creator in their color.
+  `public/assets/theme.js` now renders only where `body[data-brand-save="1"]`
+  (the creator's own pages), saves picks via `POST /brand`, and clears the old
+  `sml-brand` key. The server-rendered `--brand` is the source of truth.
+- **Press feedback convention.** Buttons with an offset shadow press into it
+  (`translate(2px,2px)` and a smaller shadow); shadowless buttons and cards use
+  `:active { scale: 0.96 }` with `transition: scale 150ms ease-out`. Name
+  transition properties; no `transition: all`.

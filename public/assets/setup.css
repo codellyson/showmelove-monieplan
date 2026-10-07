@@ -58,7 +58,7 @@
   padding: 13px 14px;
   border-radius: 13px;
   border: 1.5px solid transparent;
-  transition: all .2s;
+  transition: background-color .2s, border-color .2s;
 }
 .rail-item.is-active {
   background: rgba(255,255,255,0.10);
@@ -180,8 +180,9 @@
   cursor: pointer; background: #fff;
   margin-top: 14px;
   border: 2px solid #E0D6C2;
-  transition: all .12s;
+  transition: border-color .12s, background-color .12s, box-shadow .12s, scale 150ms ease-out;
 }
+.payopt:active { scale: 0.96; }
 .payopt.is-selected {
   border: 2px solid var(--ink);
   background: #FFE7DF;

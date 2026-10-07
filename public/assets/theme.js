@@ -1,35 +1,32 @@
-// showmelove — shared brand theming.
-// Persists the chosen brand color across pages (the design's brandColor palette)
-// and renders a floating swatch picker.
+// showmelove — brand color picker for a creator's own pages.
+//
+// The server renders each page's brand (`--brand`) from the creator who owns
+// it, and that always wins. The floating swatch picker only appears on the
+// signed-in creator's own pages (body data-brand-save="1"); a pick there is
+// saved to their creator via POST /brand, so every page they and their
+// visitors open shows it. Visitors never see the picker and can't recolor a
+// page for themselves.
 (function () {
   const PALETTE = ['#FF5A36', '#F4A93C', '#2A6FDB', '#1F8A5B', '#E84D8A'];
-  const KEY = 'sml-brand';
+
+  // Older versions kept a per-browser pick here, which overrode creators'
+  // colors on their public pages. Clear it so it can't come back.
+  try { localStorage.removeItem('sml-brand'); } catch {}
 
   function current() {
-    const saved = localStorage.getItem(KEY);
-    if (PALETTE.includes(saved)) return saved;
-    // Fall back to the server-set brand (inline --brand) before the palette default.
-    const server = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim();
-    return server || PALETTE[0];
-  }
-
-  function apply(color) {
-    document.documentElement.style.setProperty('--brand', color);
+    const value = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim();
+    return PALETTE.includes(value.toUpperCase()) ? value.toUpperCase() : PALETTE[0];
   }
 
   function set(color) {
-    apply(color);
-    localStorage.setItem(KEY, color);
+    document.documentElement.style.setProperty('--brand', color);
     render();
-    // On owner pages (dashboard/setup/connect/settings), persist to the creator.
-    if (document.body.dataset.brandSave === '1') {
-      const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
-      fetch('/brand', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
-        body: JSON.stringify({ color }),
-      }).catch(() => {});
-    }
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    fetch('/brand', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+      body: JSON.stringify({ color }),
+    }).catch(() => {});
   }
 
   let dock;
@@ -45,21 +42,24 @@
     wrap.className = 'theme-swatches';
     PALETTE.forEach((color) => {
       const b = document.createElement('button');
+      b.type = 'button';
       b.className = 'theme-swatch' + (color === active ? ' is-active' : '');
       b.style.background = color;
       b.setAttribute('aria-label', 'Use ' + color);
+      b.setAttribute('aria-pressed', String(color === active));
       b.addEventListener('click', () => set(color));
       wrap.appendChild(b);
     });
     dock.appendChild(wrap);
   }
 
-  // Apply before paint to avoid a color flash.
-  apply(current());
+  function init() {
+    if (document.body.dataset.brandSave === '1') render();
+  }
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', render);
+    document.addEventListener('DOMContentLoaded', init);
   } else {
-    render();
+    init();
   }
 })();
 
