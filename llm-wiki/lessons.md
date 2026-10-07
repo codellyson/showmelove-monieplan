@@ -46,3 +46,17 @@
 - **Hono `onError` must pass `HTTPException` through.** A catch-all 500 handler
   turns `csrf()`'s 403 (and any deliberate `HTTPException`) into a 500;
   `worker/src/app.ts` returns `err.getResponse()` for those.
+- **Hono sub-app middleware leaks.** `sub.use('*', mw)` on a sub-app mounted
+  with `app.route('/', sub)` runs for every later route too, including the
+  `/:handle` catch-all. In `worker/src/routes/creator_area.tsx` each route
+  takes `requireAuth` itself.
+- **Hono `setCookie` already URL-encodes.** Encoding the value yourself
+  double-encodes it; `getCookie` only decodes once.
+- **Parity-checking the Workers port.** Run a copy of the AdonisJS app (rsync
+  without node_modules, symlink them, `sqlite3 .backup` the database, blank
+  `KHAIME_API_KEY` in the copy's `.env` so nothing reaches the shared Khaime
+  dev API) on port 3340 (a Better Auth trusted origin), load the same data into
+  a separate local D1 (`--persist-to`), and give the Worker the copy's
+  `APP_KEY` through `--env-file`. One AdonisJS session cookie then works on
+  both, and normalised HTML can be diffed page by page. Delete the copy after:
+  it holds `.env` secrets and user data.

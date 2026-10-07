@@ -1,0 +1,254 @@
+import type { Creator } from '../../db/schema'
+import type { CreatorView } from '../../services/creator_presenter'
+import { Brand, Document, HEART_PATH, type Shared } from '../layout'
+import { Menu } from '../partials'
+
+export interface LandingProps {
+  shared: Shared
+  example: Creator | null
+  stats: CreatorView | null
+  platformCreators: number
+  platformSupporters: number
+}
+
+/** Port of pages/landing.edge: the marketing home. */
+export function LandingPage({ shared, example, stats, platformCreators, platformSupporters }: LandingProps) {
+  const exampleHref = example ? '/' + example.handle : '/setup'
+  const proof = (stats?.notes ?? []).filter((note, i) => i < 3 && note.message)
+  return (
+    <Document
+      title="showmelove — Get paid by the people who love your work"
+      pageCss="landing.css"
+      brandColor={example ? example.brandColor : null}
+    >
+      <div class="page">
+        <div class="wrap">
+          {/* NAV */}
+          <header class="nav-bar">
+            <Brand />
+            <div class="nav-links">
+              <a class="nav-link" href={exampleHref}>
+                See an example
+              </a>
+              <Menu {...shared} />
+            </div>
+          </header>
+
+          {/* HERO */}
+          <section class="hero">
+            <div class="hero-copy">
+              <span class="eyebrow">Built for Nigerian creators · Naira-first</span>
+              <h1 class="hero-title">
+                Get paid by the people who <span class="hl">love</span> your work.
+              </h1>
+              <p class="hero-sub">
+                A tip-jar page made for Naira. Go live in under a minute, share one link, and keep up to{' '}
+                <strong>100%</strong> of every bit of love.
+              </p>
+              <div class="hero-cta">
+                <a class="btn-primary btn-lg" href="/setup">
+                  Start your page — free
+                </a>
+                <a class="btn-outline btn-lg" href={exampleHref}>
+                  See a live page
+                </a>
+              </div>
+              <div class="hero-stats">
+                <div class="hstat">
+                  <div class="hstat-num">{platformCreators.toLocaleString('en-US')}</div>
+                  <div class="hstat-lbl">{platformCreators === 1 ? 'creator' : 'creators'}</div>
+                </div>
+                <div class="hstat-div"></div>
+                <div class="hstat">
+                  <div class="hstat-num">{platformSupporters.toLocaleString('en-US')}</div>
+                  <div class="hstat-lbl">{platformSupporters === 1 ? 'supporter' : 'supporters'}</div>
+                </div>
+                <div class="hstat-div"></div>
+                <div class="hstat">
+                  <div class="hstat-num">&lt;60s</div>
+                  <div class="hstat-lbl">to go live</div>
+                </div>
+              </div>
+            </div>
+
+            {/* HERO VISUAL: mini support card */}
+            <div class="hero-art">
+              <div class="mini-card mini-card-back">
+                <div class="mini-note">
+                  <div class="avatar" style="width:34px;height:34px;font-size:14px;background:var(--gold);">
+                    K
+                  </div>
+                  <div style="flex:1;">
+                    <div class="mini-note-name">Kemi</div>
+                    <div class="mini-note-quote">"You earned it. 🧡"</div>
+                  </div>
+                  <div class="mini-amt">₦5,000</div>
+                </div>
+              </div>
+              <div class="mini-card mini-card-front">
+                <div class="mini-head">
+                  <svg width="18" height="18" viewBox="0 0 24 24" style="fill:var(--brand)">
+                    <path d={HEART_PATH} />
+                  </svg>
+                  <span>Show Ada some love</span>
+                </div>
+                <div class="mini-amts">
+                  <span class="mini-chip">₦1,000</span>
+                  <span class="mini-chip is-on">₦2,000</span>
+                  <span class="mini-chip">₦5,000</span>
+                </div>
+                <div class="mini-send">Send ₦2,000 of love</div>
+              </div>
+            </div>
+          </section>
+
+          {/* VALUE PROPS */}
+          <section class="props">
+            <div class="prop">
+              <div class="prop-emoji">🇳🇬</div>
+              <h3 class="prop-title">Naira-first</h3>
+              <p class="prop-body">
+                Built for the Nigerian market incumbents serve poorly. Multi-currency, but Naira by default.
+              </p>
+            </div>
+            <div class="prop">
+              <div class="prop-emoji">⚡</div>
+              <h3 class="prop-title">Live in a minute</h3>
+              <p class="prop-body">
+                Claim a link, add a photo and a line — and you're collecting support. No setup wall.
+              </p>
+            </div>
+            <div class="prop">
+              <div class="prop-emoji">💸</div>
+              <h3 class="prop-title">A 0% path</h3>
+              <p class="prop-body">
+                Start with managed payouts, then connect your own Paystack or Stripe to keep 100%.
+              </p>
+            </div>
+          </section>
+
+          {/* HOW IT WORKS */}
+          <section class="how">
+            <div class="section-head">
+              <span class="section-eyebrow">How it works</span>
+              <h2 class="section-title">Three steps to your first love note.</h2>
+            </div>
+            <div class="steps">
+              <div class="how-step">
+                <div class="how-num">1</div>
+                <h3 class="how-title">Claim your page</h3>
+                <p class="how-body">
+                  Pick a display name and a <code>{shared.siteHost}/</code> link that's yours.
+                </p>
+              </div>
+              <div class="how-step">
+                <div class="how-num">2</div>
+                <h3 class="how-title">Make it yours</h3>
+                <p class="how-body">A photo, a short bio, your currency, and an optional monthly goal.</p>
+              </div>
+              <div class="how-step">
+                <div class="how-num">3</div>
+                <h3 class="how-title">Get paid</h3>
+                <p class="how-body">Managed payouts in one tap — or connect your own processor for 0%.</p>
+              </div>
+            </div>
+          </section>
+
+          {/* PAYOUT MODES */}
+          <section class="modes">
+            <div class="section-head">
+              <span class="section-eyebrow">Two ways to get paid</span>
+              <h2 class="section-title">One page. Your money, your way.</h2>
+            </div>
+            <div class="mode-cards">
+              <div class="mode-card">
+                <span class="badge badge-brand">Recommended</span>
+                <h3 class="mode-title">Managed payouts</h3>
+                <p class="mode-body">
+                  We handle everything — support settles to your bank automatically. The frictionless way to start,
+                  especially in underserved markets.
+                </p>
+                <ul class="mode-list">
+                  <li>One tap to start</li>
+                  <li>Monthly support supported</li>
+                  <li>Auto settlement to your bank</li>
+                </ul>
+                <a class="btn-primary mode-cta" href="/setup">
+                  Start managed
+                </a>
+              </div>
+              <div class="mode-card mode-card-dark">
+                <span class="badge badge-muted">0% platform fee</span>
+                <h3 class="mode-title">Bring your own</h3>
+                <p class="mode-body">
+                  Already on Paystack or Stripe? Connect it and we stop taking a fee — your page, link, and supporters
+                  stay exactly as they are.
+                </p>
+                <ul class="mode-list">
+                  <li>Keep 100% of support</li>
+                  <li>Funds settle to your processor</li>
+                  <li>Switch anytime, no data lost</li>
+                </ul>
+                <a class="btn-outline mode-cta" href="/connect">
+                  Connect a processor
+                </a>
+              </div>
+            </div>
+          </section>
+
+          {/* SOCIAL PROOF (real love notes from the database) */}
+          <section class="proof">
+            <div class="section-head">
+              <span class="section-eyebrow">Real love notes</span>
+              <h2 class="section-title">Support that feels personal.</h2>
+            </div>
+            <div class="proof-grid">
+              {proof.map((note) => (
+                <div class="proof-card">
+                  <div class="proof-quote">“{note.message}”</div>
+                  <div class="proof-foot">
+                    <div class="avatar" style={`width:32px;height:32px;font-size:13px;background:${note.color};`}>
+                      {note.initial}
+                    </div>
+                    <span class="proof-name">{note.name}</span>
+                    <span class="proof-amt">{note.amountLabel}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* FINAL CTA */}
+          <section class="cta-band">
+            <h2 class="cta-title">Your work is worth supporting.</h2>
+            <p class="cta-sub">Set up your page in under a minute. It's free to start.</p>
+            <a class="btn-primary btn-lg" href="/setup">
+              Start your page
+            </a>
+          </section>
+
+          {/* FOOTER */}
+          <footer class="footer">
+            <div class="brand">
+              <div class="brand-mark">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff">
+                  <path d={HEART_PATH} />
+                </svg>
+              </div>
+              <span class="brand-name" style="font-size:18px;">
+                showmelove
+              </span>
+            </div>
+            <div class="footer-links">
+              <a href={exampleHref}>Explore</a>
+              <a href="/setup">Start a page</a>
+              <a href="/dashboard">Dashboard</a>
+              <a href="/connect">Connect</a>
+            </div>
+            <div class="footer-note">Made for Nigerian creators · Naira-first</div>
+          </footer>
+        </div>
+      </div>
+    </Document>
+  )
+}

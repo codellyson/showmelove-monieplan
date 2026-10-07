@@ -48,8 +48,30 @@ Phase 3 (middleware) is done:
   the `csrf-token` meta; client JS still sending `X-CSRF-TOKEN` is harmless.
   `/api/auth/*` (Better Auth's own origin check) and `/webhooks/*` are exempt.
 
-Still to port: the 9 controllers and 22 Edge views (as Hono JSX), and the
-Khaime webhook.
+Phase 4 (routes and views) is done:
+
+- `src/routes/`: `auth.tsx` (login, register, forgot, reset, logout),
+  `public.tsx` (landing, `/:handle`, `POST /:handle/support`) and
+  `creator_area.tsx` (setup, dashboard, supporters, connect, settings,
+  payouts). `src/index.ts` mounts them with `publicRoutes` last. Each
+  creator-area route takes `requireAuth` itself; a sub-app `use('*')` would
+  also guard `/:handle`.
+- `src/views/`: Hono JSX ports of the 13 rendered Edge pages and 4 partials.
+  `resources/views/pages/home.edge` was never rendered and is not ported.
+- `src/lib/http.ts`: `readInput` (query + JSON or form body, like
+  `request.input`), and cookie-based one-shot flash messages replacing
+  AdonisJS session flash.
+
+Checked for parity against the AdonisJS app: both apps served the same copy
+of the database, the Worker using the session cookie AdonisJS issued, and
+every page's HTML was compared after normalising (attribute order, entity
+escaping, whitespace, host). All pages matched for guests and signed-in
+creators across managed/bring-your-own, NGN/USD and every payout status, as
+did the JSON and form actions (status, body, follow-up page, resulting row).
+The remaining intentional differences: no `csrf-token` meta or `_csrf` field,
+and lowercase `method="post"`.
+
+Still to port: the Khaime webhook (`POST /webhooks/khaime`).
 
 ## Tests
 
