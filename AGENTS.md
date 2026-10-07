@@ -13,5 +13,7 @@ Quick rules (details in `llm-wiki/README.md`):
 - Never print or commit a value from `.env`.
 - `Support.amount` is major units in the creator's currency; Khaime takes minor
   units. Convert only in `app/services/khaime.ts`.
-- A tip is paid only when the `payment.succeeded` webhook says so.
+- A tip is paid only when Khaime says so: the `payment.succeeded` webhook, or
+  (Workers port) the reconcile Cron's `GET /transactions/:id` lookup. Never
+  optimistically, and a succeeded tip never goes back.
 - New top-level routes go above the `/:handle` catch-all.

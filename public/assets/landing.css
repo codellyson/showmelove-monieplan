@@ -99,7 +99,7 @@
 
 /* ---- Value props ---- */
 .props {
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(4, 1fr);
   gap: 20px; padding: 24px 0 64px;
 }
 .prop {
@@ -110,6 +110,10 @@
 .prop-emoji { font-size: 30px; }
 .prop-title { font: 800 21px 'Bricolage Grotesque', sans-serif; letter-spacing: -0.02em; margin: 14px 0 8px; }
 .prop-body { font: 500 15px/1.55 'Hanken Grotesk', sans-serif; color: var(--muted); margin: 0; }
+.prop-body code, .how-body code {
+  font: 600 13px 'Hanken Grotesk', sans-serif;
+  background: #FAF5EA; border: 1.5px solid var(--ink); border-radius: 6px; padding: 1px 6px;
+}
 
 /* ---- How it works ---- */
 .how { padding: 40px 0 64px; }
@@ -127,10 +131,7 @@
 }
 .how-title { font: 800 20px 'Bricolage Grotesque', sans-serif; letter-spacing: -0.02em; margin: 18px 0 6px; }
 .how-body { font: 500 15px/1.55 'Hanken Grotesk', sans-serif; color: var(--muted); margin: 0; }
-.how-body code {
-  font: 600 13px 'Hanken Grotesk', sans-serif;
-  background: #fff; border: 1.5px solid var(--ink); border-radius: 6px; padding: 1px 6px;
-}
+.how-body code { background: #fff; }
 
 /* ---- Modes ---- */
 .modes { padding: 40px 0 64px; }
@@ -162,6 +163,44 @@
 }
 .mode-cta { margin-top: auto; align-self: flex-start; }
 .mode-card-dark .btn-outline { background: var(--brand); color: #fff; border-color: #fff; }
+/* Bring-your-own isn't live yet: a label where the button would be, not a link to it. */
+.mode-soon {
+  margin-top: auto; align-self: flex-start;
+  font: 700 14px 'Hanken Grotesk', sans-serif; color: #B9AE99;
+  border: 2px dashed #6B6152; border-radius: 12px; padding: 14px 22px;
+}
+
+/* ---- For supporters ---- */
+.fans { padding: 8px 0 64px; }
+.fans-card {
+  background: var(--gold); border: 2px solid var(--ink);
+  border-radius: 22px; padding: 34px 32px; box-shadow: 6px 6px 0 var(--ink);
+  text-align: center;
+}
+.fans-card .section-eyebrow { color: var(--ink); }
+.fans-title { font: 800 32px 'Bricolage Grotesque', sans-serif; letter-spacing: -0.03em; margin: 8px 0 10px; }
+.fans-body { font: 500 17px/1.55 'Hanken Grotesk', sans-serif; color: #3A3127; margin: 0 auto; max-width: 560px; }
+
+/* ---- FAQ ---- */
+.faq { padding: 8px 0 64px; }
+.faq-list { display: flex; flex-direction: column; gap: 12px; max-width: 760px; margin: 0 auto; }
+.faq-item {
+  background: #fff; border: 2px solid var(--ink);
+  border-radius: 16px; box-shadow: 3px 3px 0 var(--ink);
+}
+.faq-item summary {
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 18px 22px;
+  font: 700 17px 'Hanken Grotesk', sans-serif;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: "+"; flex: none;
+  font: 800 22px/1 'Bricolage Grotesque', sans-serif; color: var(--brand);
+}
+.faq-item[open] summary::after { content: "–"; }
+.faq-item p { font: 500 15px/1.6 'Hanken Grotesk', sans-serif; color: var(--muted); margin: 0; padding: 0 22px 20px; }
 
 /* ---- Social proof ---- */
 .proof { padding: 40px 0 64px; }
@@ -197,6 +236,9 @@
 .footer-note { font: 500 13px 'Hanken Grotesk', sans-serif; color: var(--muted-2); }
 
 /* ---- Responsive ---- */
+@media (max-width: 1100px) {
+  .props { grid-template-columns: repeat(2, 1fr); }
+}
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; }
   .hero-art { height: 300px; margin-top: 10px; }
@@ -205,6 +247,7 @@
   .hero-title { font-size: 44px; }
   .section-title { font-size: 30px; }
   .cta-title { font-size: 32px; }
+  .fans-title { font-size: 26px; }
 }
 @media (max-width: 760px) {
   .page { padding: 18px 16px 0; }

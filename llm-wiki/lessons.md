@@ -27,3 +27,54 @@
 - **Unit mistakes are silent.** Khaime takes minor units, `/pricing/calculate`
   returns major units, `Support.amount` is major. A wrong conversion still
   produces a valid-looking charge; check the amount on the Khaime side.
+- **Workers port lives in `worker/`.** The Cloudflare migration (Hono, D1,
+  Better Auth on D1) is built beside the AdonisJS app, not in place of it; see
+  `worker/README.md` for status. Its `migrations/0001_init.sql` mirrors the
+  live SQLite schema exactly so old data imports as plain `INSERT`s; change
+  the schema through new D1 migrations, not by editing that file. Pass the D1
+  binding straight to Better Auth (`database: env.DB`): its built-in D1
+  dialect writes ISO date text like the old setup. Run `wrangler dev` on 8790;
+  8787 is held by another `workerd` on this machine.
+- **Worker `compatibility_date` is capped by the test runner.** The `workerd`
+  bundled with `@cloudflare/vitest-pool-workers` lags wrangler's; a newer date
+  fails every test with "requires compatibility date ... newest supported is
+  ...". Keep `worker/wrangler.jsonc` at or below what `npm test` accepts.
+- **Khaime provisioning failures used to be silent.** `provisionMerchantId`
+  catches every Khaime error to try its fallbacks and returns null, so the
+  AdonisJS middleware's "log on failure" never fired. The Workers port warns
+  ("Khaime sub-merchant provisioning failed for creator N") when that happens.
+- **Hono `onError` must pass `HTTPException` through.** A catch-all 500 handler
+  turns `csrf()`'s 403 (and any deliberate `HTTPException`) into a 500;
+  `worker/src/app.ts` returns `err.getResponse()` for those.
+- **Hono sub-app middleware leaks.** `sub.use('*', mw)` on a sub-app mounted
+  with `app.route('/', sub)` runs for every later route too, including the
+  `/:handle` catch-all. In `worker/src/routes/creator_area.tsx` each route
+  takes `requireAuth` itself.
+- **Hono `setCookie` already URL-encodes.** Encoding the value yourself
+  double-encodes it; `getCookie` only decodes once.
+- **Parity-checking the Workers port.** Run a copy of the AdonisJS app (rsync
+  without node_modules, symlink them, `sqlite3 .backup` the database, blank
+  `KHAIME_API_KEY` in the copy's `.env` so nothing reaches the shared Khaime
+  dev API) on port 3340 (a Better Auth trusted origin), load the same data into
+  a separate local D1 (`--persist-to`), and give the Worker the copy's
+  `APP_KEY` through `--env-file`. One AdonisJS session cookie then works on
+  both, and normalised HTML can be diffed page by page. Delete the copy after:
+  it holds `.env` secrets and user data.
+- **Webhook idempotency on D1 lives in the UPDATE.** Without interactive
+  transactions, "read the support, then decide" can race a duplicate
+  delivery. `worker/src/routes/webhooks.ts` writes the rule into the statement
+  (`UPDATE ... WHERE reference = ? AND status != 'succeeded'`), so a late
+  `payment.failed` can never undo a `payment.succeeded`.
+- **Khaime's partner API is documented at docs.khaime.com.** Pages are
+  available as markdown by appending `.md` (e.g.
+  `https://docs.khaime.com/api-reference/payments/get-transaction.md`,
+  `https://docs.khaime.com/webhooks/events.md`); `llms.txt` lists them. That is
+  where the payment `status` values (`succeeded`, `failed`, `refunded`,
+  `disputed`) and the `GET /transactions/:id` contract come from.
+- **Dump AdonisJS data with column names.** Since Workers migration 0002 added
+  `supports.khaime_transaction_id`, a column-less `INSERT ... VALUES` dump
+  of the old database fails on `supports` and imports nothing. Use
+  `sqlite3 -cmd ".headers on" -cmd ".mode insert <table>"` (worker/README.md).
+- **Parity copies don't hot-reload.** `node ace serve` without `--hmr` serves
+  the code as it was when started; rsync `app/`, `resources/` and `public/`
+  into the copy and restart it after editing.

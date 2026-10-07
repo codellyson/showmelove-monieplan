@@ -1,0 +1,12 @@
+# Copy to .dev.vars (gitignored) for `wrangler dev`. Remote: `npx wrangler secret put <NAME>`.
+# APP_KEY must be the SAME value the AdonisJS app uses, or every existing
+# Better Auth session cookie stops validating after cutover.
+APP_KEY=
+KHAIME_API_KEY=
+KHAIME_WEBHOOK_SECRET=
+BREVO_API_KEY=
+MAIL_FROM_EMAIL=
+# Local only: point at the shared dev API instead of production.
+KHAIME_API_URL=https://api.khaimedev.com/api/v1
+# Local only: wrangler dev runs on 8790 in .claude/launch.json.
+APP_URL=http://localhost:8790
