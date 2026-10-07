@@ -27,3 +27,11 @@
 - **Unit mistakes are silent.** Khaime takes minor units, `/pricing/calculate`
   returns major units, `Support.amount` is major. A wrong conversion still
   produces a valid-looking charge; check the amount on the Khaime side.
+- **Workers port lives in `worker/`.** The Cloudflare migration (Hono, D1,
+  Better Auth on D1) is built beside the AdonisJS app, not in place of it; see
+  `worker/README.md` for status. Its `migrations/0001_init.sql` mirrors the
+  live SQLite schema exactly so old data imports as plain `INSERT`s; change
+  the schema through new D1 migrations, not by editing that file. Pass the D1
+  binding straight to Better Auth (`database: env.DB`): its built-in D1
+  dialect writes ISO date text like the old setup. Run `wrangler dev` on 8790;
+  8787 is held by another `workerd` on this machine.

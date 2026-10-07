@@ -1,0 +1,39 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "showmelove",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // The hand-written design CSS/JS/fonts are shared with the AdonisJS app
+  // until the migration is done, so serve them from the repo's public/.
+  // Matching files are served before the Worker runs; everything else
+  // (pages, /api/auth/*, webhooks) falls through to src/index.ts.
+  "assets": {
+    "directory": "../public",
+    "binding": "ASSETS"
+  },
+
+  // One database for app tables (creators, supports) and Better Auth's
+  // tables (user, session, account, verification), as with tmp/db.sqlite3.
+  // Create it with `npx wrangler d1 create showmelove`, then paste the id here.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "showmelove",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // Non-secret config. Secrets (APP_KEY, KHAIME_API_KEY, KHAIME_WEBHOOK_SECRET,
+  // BREVO_API_KEY) go in .dev.vars locally and `wrangler secret put` remotely.
+  "vars": {
+    "APP_URL": "http://localhost:8787",
+    "KHAIME_API_URL": "https://api.khaime.com/api/v1",
+    "KHAIME_COMMISSION_RATE": "0.05",
+    "MAIL_FROM_NAME": "Show Me Love"
+  },
+
+  "observability": { "enabled": true }
+}
