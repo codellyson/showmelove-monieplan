@@ -16,24 +16,29 @@
 
   // One database for app tables (creators, supports) and Better Auth's
   // tables (user, session, account, verification), as with tmp/db.sqlite3.
-  // Create it with `npx wrangler d1 create showmelove`, then paste the id here.
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "showmelove",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "76cf5d52-3509-4de4-aeef-9a90a07311d9",
       "migrations_dir": "migrations"
     }
   ],
 
   // Non-secret config. Secrets (APP_KEY, KHAIME_API_KEY, KHAIME_WEBHOOK_SECRET,
   // BREVO_API_KEY) go in .dev.vars locally and `wrangler secret put` remotely.
+  // Staging on showmelove.kreativekorna.com, against Khaime's shared dev API.
+  // For production, change both (KHAIME_API_URL: https://api.khaime.com/api/v1)
+  // and set a live KHAIME_API_KEY. Locally, .dev.vars overrides these.
   "vars": {
-    "APP_URL": "http://localhost:8787",
-    "KHAIME_API_URL": "https://api.khaime.com/api/v1",
+    "APP_URL": "https://showmelove.kreativekorna.com",
+    "KHAIME_API_URL": "https://api.khaimedev.com/api/v1",
     "KHAIME_COMMISSION_RATE": "0.05",
     "MAIL_FROM_NAME": "Show Me Love"
   },
+
+  // Custom domain: Cloudflare creates the DNS record and certificate on deploy.
+  "routes": [{ "pattern": "showmelove.kreativekorna.com", "custom_domain": true }],
 
   // Every 10 minutes: look up tips still pending after their webhook should
   // have arrived (src/jobs/reconcile_pending.ts).

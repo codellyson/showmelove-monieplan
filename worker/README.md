@@ -124,7 +124,18 @@ From the repo root, the "showmelove-worker" config in `.claude/launch.json`
 starts the same thing. Port 8790, not 8787, because another `workerd` on this
 machine already holds 8787.
 
-## First deploy
+## Deployed
+
+Staging runs at https://showmelove.kreativekorna.com (custom domain in
+`wrangler.jsonc`), on the D1 database `showmelove`, against Khaime's shared
+dev API, with the Cron every 10 minutes. It started with an empty database.
+Its secrets came from the AdonisJS `.env`. Redeploy with `npx wrangler deploy`.
+
+Khaime only sends webhooks to the URL registered for the partner key, so until
+that points at `https://showmelove.kreativekorna.com/webhooks/khaime`, tips
+here are confirmed by the reconcile Cron instead (within about 10 minutes).
+
+## First deploy (how staging was set up)
 
 ```bash
 npx wrangler d1 create showmelove   # paste the database_id into wrangler.jsonc
