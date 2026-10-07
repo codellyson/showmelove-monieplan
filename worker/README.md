@@ -71,7 +71,18 @@ did the JSON and form actions (status, body, follow-up page, resulting row).
 The remaining intentional differences: no `csrf-token` meta or `_csrf` field,
 and lowercase `method="post"`.
 
-Still to port: the Khaime webhook (`POST /webhooks/khaime`).
+Phase 5 (Khaime webhook) is done, in `src/routes/webhooks.ts`: the signature
+is checked over the raw body text before parsing; `payment.succeeded` /
+`payment.failed` update the support with a conditional UPDATE (`status !=
+'succeeded'`) so a succeeded tip never goes back even without transactions;
+the marketplace split is stored and mismatches logged; `account.updated`
+re-fetches the merchant for its payout status. Exempt from CSRF and the
+session middleware.
+
+Everything in the AdonisJS app is now ported. Left before cutover: optionally
+a Cron Trigger that checks `pending` tips via `GET /transactions/:id` (covers
+lost webhooks), then the deploy and data move below, and pointing the Khaime
+webhook URL at the Worker.
 
 ## Tests
 

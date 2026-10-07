@@ -60,3 +60,8 @@
   `APP_KEY` through `--env-file`. One AdonisJS session cookie then works on
   both, and normalised HTML can be diffed page by page. Delete the copy after:
   it holds `.env` secrets and user data.
+- **Webhook idempotency on D1 lives in the UPDATE.** Without interactive
+  transactions, "read the support, then decide" can race a duplicate
+  delivery. `worker/src/routes/webhooks.ts` writes the rule into the statement
+  (`UPDATE ... WHERE reference = ? AND status != 'succeeded'`), so a late
+  `payment.failed` can never undo a `payment.succeeded`.
