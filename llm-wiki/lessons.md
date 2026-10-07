@@ -39,3 +39,10 @@
   bundled with `@cloudflare/vitest-pool-workers` lags wrangler's; a newer date
   fails every test with "requires compatibility date ... newest supported is
   ...". Keep `worker/wrangler.jsonc` at or below what `npm test` accepts.
+- **Khaime provisioning failures used to be silent.** `provisionMerchantId`
+  catches every Khaime error to try its fallbacks and returns null, so the
+  AdonisJS middleware's "log on failure" never fired. The Workers port warns
+  ("Khaime sub-merchant provisioning failed for creator N") when that happens.
+- **Hono `onError` must pass `HTTPException` through.** A catch-all 500 handler
+  turns `csrf()`'s 403 (and any deliberate `HTTPException`) into a 500;
+  `worker/src/app.ts` returns `err.getResponse()` for those.

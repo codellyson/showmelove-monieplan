@@ -11,6 +11,7 @@ export default defineConfig({
         bindings: {
           TEST_MIGRATIONS: await readD1Migrations('./migrations'),
           APP_KEY: 'test-app-key-test-app-key-test-app-key',
+          APP_URL: 'http://localhost',
           KHAIME_API_KEY: 'test-key',
           KHAIME_API_URL: 'https://khaime.test/api/v1',
           KHAIME_WEBHOOK_SECRET: 'test-webhook-secret',

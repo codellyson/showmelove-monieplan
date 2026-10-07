@@ -1,23 +1,19 @@
-import { Hono } from 'hono'
-import { createDb } from './db/client'
+import { createApp } from './app'
 import { creators } from './db/schema'
-import { createAuth } from './lib/auth'
 
 /**
- * showmelove on Workers — phase 1 scaffold.
+ * showmelove on Workers.
  *
  * Static files under ../public are served by Workers Static Assets before this
- * runs. Phase 1 only wires the platform: D1, Better Auth and a health check.
- * Pages, the support flow and the Khaime webhook are ported in later phases;
- * keep `/:handle` registered LAST when it arrives, as in start/routes.ts.
+ * runs. Middleware (session, creator, CSRF, headers) and /api/auth/* are set up
+ * in createApp(). Pages, the support flow and the Khaime webhook are ported in
+ * later phases; protected pages use `requireAuth`, and `/:handle` must be
+ * registered LAST, as in start/routes.ts.
  */
-const app = new Hono<{ Bindings: Env }>()
-
-app.on(['GET', 'POST'], '/api/auth/*', (c) => createAuth(c.env).handler(c.req.raw))
+const app = createApp()
 
 app.get('/health', async (c) => {
-  const db = createDb(c.env.DB)
-  const rows = await db.select({ id: creators.id }).from(creators).limit(1)
+  const rows = await c.var.db.select({ id: creators.id }).from(creators).limit(1)
   return c.json({ ok: true, db: 'd1', creatorsReadable: Array.isArray(rows) })
 })
 

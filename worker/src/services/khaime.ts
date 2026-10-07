@@ -292,7 +292,12 @@ export function createKhaime(env: Env) {
   async function ensureMerchant(db: Db, creator: Creator, ownerEmail: string): Promise<Creator> {
     if (!isConfigured() || creator.payoutMode !== 'managed' || creator.khaimeMerchantId) return creator
     const merchantId = await provisionMerchantId(creator.displayName, creator.handle, ownerEmail)
-    if (!merchantId) return creator
+    if (!merchantId) {
+      // provisionMerchantId swallows each Khaime error to try the next fallback;
+      // say so here, or a misconfigured key looks like nothing happened.
+      console.warn(`Khaime sub-merchant provisioning failed for creator ${creator.id}`)
+      return creator
+    }
     const [updated] = await db
       .update(creators)
       .set({ khaimeMerchantId: merchantId })

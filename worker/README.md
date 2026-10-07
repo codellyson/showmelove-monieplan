@@ -31,8 +31,25 @@ Phase 2 (services) is done, in `src/services/`:
   transactions. The presenter takes an optional `now`, used for both the deltas
   and the "2 days ago" labels.
 
-Still to port: the current-user and auth middleware, the 9 controllers and 22
-Edge views (as Hono JSX), and the Khaime webhook.
+Phase 3 (middleware) is done:
+
+- `src/app.ts`: `createApp()` builds the global stack, the counterpart of
+  `start/kernel.ts`: per-request `db`/`auth`/`khaime`, security headers matching
+  the old shield config, CSRF, the `/api/auth/*` mount, then the current user.
+  `src/index.ts` adds routes to it; tests build their own.
+- `src/middleware/current_user.ts`: session → `c.var.user`, creator created on
+  first sight → `c.var.creator`, Khaime sub-merchant provisioned for managed
+  creators (awaited, as before; failures logged, never thrown), plus
+  `c.var.origin` / `c.var.siteHost` for page links.
+- `src/middleware/require_auth.ts`: guests go to `/login?next=<path>`.
+- CSRF changed shape: shield's session token (`_csrf` field, `X-CSRF-TOKEN`)
+  becomes Hono's `csrf()`, which rejects cross-site form posts by Origin /
+  Sec-Fetch-Site and needs no session. Ported views can drop `csrfField()` and
+  the `csrf-token` meta; client JS still sending `X-CSRF-TOKEN` is harmless.
+  `/api/auth/*` (Better Auth's own origin check) and `/webhooks/*` are exempt.
+
+Still to port: the 9 controllers and 22 Edge views (as Hono JSX), and the
+Khaime webhook.
 
 ## Tests
 
