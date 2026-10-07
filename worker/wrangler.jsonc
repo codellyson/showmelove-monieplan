@@ -44,5 +44,10 @@
   // have arrived (src/jobs/reconcile_pending.ts).
   "triggers": { "crons": ["*/10 * * * *"] },
 
+  // Local dev: without this, wrangler dev rewrites requests to the custom
+  // domain above, so pages show the production host and Better Auth rejects
+  // the localhost origin. 8790 because another workerd here holds 8787.
+  "dev": { "port": 8790, "host": "localhost:8790", "upstream_protocol": "http" },
+
   "observability": { "enabled": true }
 }

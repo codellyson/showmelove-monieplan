@@ -78,3 +78,16 @@
 - **Parity copies don't hot-reload.** `node ace serve` without `--hmr` serves
   the code as it was when started; rsync `app/`, `resources/` and `public/`
   into the copy and restart it after editing.
+- **A Worker custom domain changes `wrangler dev`.** With `routes` set to
+  `showmelove.kreativekorna.com`, local requests are rewritten to that host:
+  pages show the production domain and Better Auth answers every local sign-in
+  with `INVALID_ORIGIN`. The `dev` block in `worker/wrangler.jsonc`
+  (`host: localhost:8790`, `upstream_protocol: http`) keeps local requests local.
+- **Changing `database_id` empties the local D1.** Local state is keyed by the
+  id, so after pointing `wrangler.jsonc` at the real database, run
+  `npm run db:migrate:local` again ("no such table: creators" otherwise).
+- **Never show Better Auth's raw messages.** They read like
+  `[body.email] Invalid email address`. `public/assets/auth.js` and
+  `auth-reset.js` validate in the browser first and map error `code`s
+  (`INVALID_EMAIL_OR_PASSWORD`, `USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL`, …) to
+  plain messages, with a generic fallback.

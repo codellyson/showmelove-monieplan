@@ -28,6 +28,8 @@
   font: 600 15px 'Hanken Grotesk', sans-serif; background: #fff;
 }
 .text-input:focus { box-shadow: 3px 3px 0 var(--ink); outline: none; }
+.text-input[aria-invalid="true"] { border-color: #C0392B; background: #FFF6F4; }
+.text-input[aria-invalid="true"]:focus { box-shadow: 3px 3px 0 #C0392B; }
 .auth-error {
   font: 600 14px/1.4 'Hanken Grotesk', sans-serif;
   color: #C0392B; min-height: 20px; margin: 14px 0 0;
