@@ -71,3 +71,10 @@
   `https://docs.khaime.com/webhooks/events.md`); `llms.txt` lists them. That is
   where the payment `status` values (`succeeded`, `failed`, `refunded`,
   `disputed`) and the `GET /transactions/:id` contract come from.
+- **Dump AdonisJS data with column names.** Since Workers migration 0002 added
+  `supports.khaime_transaction_id`, a column-less `INSERT ... VALUES` dump
+  of the old database fails on `supports` and imports nothing. Use
+  `sqlite3 -cmd ".headers on" -cmd ".mode insert <table>"` (worker/README.md).
+- **Parity copies don't hot-reload.** `node ace serve` without `--hmr` serves
+  the code as it was when started; rsync `app/`, `resources/` and `public/`
+  into the copy and restart it after editing.

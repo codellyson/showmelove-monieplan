@@ -27,6 +27,8 @@ export function render(c: Context<AppEnv>, page: Child, status: 200 | 404 | 500 
 
 export interface DocumentProps {
   title?: string
+  /** <meta name="description">, for pages that search engines should describe. */
+  description?: string
   /** Stylesheet under /assets for this page. */
   pageCss?: string
   /** Adds /assets/shell.css (sidebar app shell). */
@@ -43,13 +45,14 @@ export interface DocumentProps {
  * The `csrf-token` meta is gone: CSRF is an Origin check now (src/app.ts), and
  * the client JS that reads the meta falls back to '' when it's missing.
  */
-export function Document({ title, pageCss, appShell, brandColor, body, children }: DocumentProps) {
+export function Document({ title, description, pageCss, appShell, brandColor, body, children }: DocumentProps) {
   return (
     <html lang="en">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{title || 'showmelove'}</title>
+        {description && <meta name="description" content={description} />}
         <link rel="stylesheet" href="/assets/fonts/fonts.css" />
         <link rel="stylesheet" href="/assets/base.css" />
         {appShell && <link rel="stylesheet" href="/assets/shell.css" />}

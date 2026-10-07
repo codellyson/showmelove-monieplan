@@ -42,6 +42,7 @@ landingRoutes.get('/', async (c) => {
       stats={stats}
       platformCreators={creatorsRow?.total ?? 0}
       platformSupporters={supportsRow?.total ?? 0}
+      commissionPct={Math.round(c.var.khaime.commissionRate() * 100)}
     />
   )
 })

@@ -140,13 +140,14 @@ Set `APP_URL` in `wrangler.jsonc` `vars` to the deployed origin.
 
 ## Moving data
 
-The schema matches the old database column for column, so plain `INSERT`s
-import as they are. Dump only the data, table by table (parents first), then
+Migration 0001 matches the old database column for column; 0002 adds
+`supports.khaime_transaction_id`, which the old rows don't have. So dump the
+data with column names (`.headers on`), table by table (parents first), then
 load it:
 
 ```bash
 for t in creators supports user session account verification; do
-  sqlite3 ../tmp/db.sqlite3 ".mode insert \"$t\"" "select * from \"$t\""
+  sqlite3 -cmd ".headers on" -cmd ".mode insert \"$t\"" ../tmp/db.sqlite3 "select * from \"$t\""
 done > data.sql
 npx wrangler d1 execute showmelove --remote --file data.sql
 ```

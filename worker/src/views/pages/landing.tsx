@@ -9,15 +9,19 @@ export interface LandingProps {
   stats: CreatorView | null
   platformCreators: number
   platformSupporters: number
+  /** Managed-payout fee shown in the copy, from KHAIME_COMMISSION_RATE. */
+  commissionPct: number
 }
 
 /** Port of pages/landing.edge: the marketing home. */
-export function LandingPage({ shared, example, stats, platformCreators, platformSupporters }: LandingProps) {
+export function LandingPage(props: LandingProps) {
+  const { shared, example, stats, platformCreators, platformSupporters, commissionPct } = props
   const exampleHref = example ? '/' + example.handle : '/setup'
   const proof = (stats?.notes ?? []).filter((note, i) => i < 3 && note.message)
   return (
     <Document
-      title="showmelove — Get paid by the people who love your work"
+      title="showmelove — Tip jar for Nigerian creators, in Naira"
+      description="A tip-jar page made for Naira. Go live in under a minute, share one link, and let fans send love in Naira or USD. Free to start."
       pageCss="landing.css"
       brandColor={example ? example.brandColor : null}
     >
@@ -42,8 +46,8 @@ export function LandingPage({ shared, example, stats, platformCreators, platform
                 Get paid by the people who <span class="hl">love</span> your work.
               </h1>
               <p class="hero-sub">
-                A tip-jar page made for Naira. Go live in under a minute, share one link, and keep up to{' '}
-                <strong>100%</strong> of every bit of love.
+                A tip-jar page made for Naira. Claim your link, share it anywhere, and let fans send love in Naira or
+                dollars, once or every month. No setup wall, no account for your supporters.
               </p>
               <div class="hero-cta">
                 <a class="btn-primary btn-lg" href="/setup">
@@ -106,23 +110,33 @@ export function LandingPage({ shared, example, stats, platformCreators, platform
           <section class="props">
             <div class="prop">
               <div class="prop-emoji">🇳🇬</div>
-              <h3 class="prop-title">Naira-first</h3>
+              <h3 class="prop-title">Naira first, not Naira later</h3>
               <p class="prop-body">
-                Built for the Nigerian market incumbents serve poorly. Multi-currency, but Naira by default.
+                Your page, your goal and your payouts are in Naira by default. Fans abroad can pay in USD, and you still
+                see it in Naira.
               </p>
             </div>
             <div class="prop">
               <div class="prop-emoji">⚡</div>
-              <h3 class="prop-title">Live in a minute</h3>
+              <h3 class="prop-title">Live before your tea cools</h3>
               <p class="prop-body">
-                Claim a link, add a photo and a line — and you're collecting support. No setup wall.
+                Pick a name, claim <code>{shared.siteHost}/you</code>, add a line about your work. You're collecting
+                support in under a minute.
               </p>
             </div>
             <div class="prop">
-              <div class="prop-emoji">💸</div>
-              <h3 class="prop-title">A 0% path</h3>
+              <div class="prop-emoji">💌</div>
+              <h3 class="prop-title">Every tip comes with a note</h3>
               <p class="prop-body">
-                Start with managed payouts, then connect your own Paystack or Stripe to keep 100%.
+                Supporters leave their name, or stay anonymous, plus a message. Your page shows the love, not just the
+                numbers.
+              </p>
+            </div>
+            <div class="prop">
+              <div class="prop-emoji">🔁</div>
+              <h3 class="prop-title">One-off or monthly</h3>
+              <p class="prop-body">
+                Fans can back you once or every month. Set a monthly goal and let everyone watch the bar fill.
               </p>
             </div>
           </section>
@@ -138,18 +152,20 @@ export function LandingPage({ shared, example, stats, platformCreators, platform
                 <div class="how-num">1</div>
                 <h3 class="how-title">Claim your page</h3>
                 <p class="how-body">
-                  Pick a display name and a <code>{shared.siteHost}/</code> link that's yours.
+                  Choose a display name and your <code>{shared.siteHost}/</code> link.
                 </p>
               </div>
               <div class="how-step">
                 <div class="how-num">2</div>
                 <h3 class="how-title">Make it yours</h3>
-                <p class="how-body">A photo, a short bio, your currency, and an optional monthly goal.</p>
+                <p class="how-body">A short bio, your currency, a monthly goal and your brand colour.</p>
               </div>
               <div class="how-step">
                 <div class="how-num">3</div>
-                <h3 class="how-title">Get paid</h3>
-                <p class="how-body">Managed payouts in one tap — or connect your own processor for 0%.</p>
+                <h3 class="how-title">Share and get paid</h3>
+                <p class="how-body">
+                  Drop the link in your bio, your stories, your group chats. Payouts go straight to your local bank.
+                </p>
               </div>
             </div>
           </section>
@@ -165,56 +181,104 @@ export function LandingPage({ shared, example, stats, platformCreators, platform
                 <span class="badge badge-brand">Recommended</span>
                 <h3 class="mode-title">Managed payouts</h3>
                 <p class="mode-body">
-                  We handle everything — support settles to your bank automatically. The frictionless way to start,
-                  especially in underserved markets.
+                  We handle the payments. Support lands in your wallet, and you withdraw to your Nigerian bank when
+                  you're ready. A small {commissionPct}% platform fee covers processing.
                 </p>
                 <ul class="mode-list">
-                  <li>One tap to start</li>
-                  <li>Monthly support supported</li>
-                  <li>Auto settlement to your bank</li>
+                  <li>Start with one tap</li>
+                  <li>Monthly support included</li>
+                  <li>Withdraw to your local bank</li>
                 </ul>
                 <a class="btn-primary mode-cta" href="/setup">
                   Start managed
                 </a>
               </div>
               <div class="mode-card mode-card-dark">
-                <span class="badge badge-muted">0% platform fee</span>
-                <h3 class="mode-title">Bring your own</h3>
+                <span class="badge badge-muted">Coming soon · 0% platform fee</span>
+                <h3 class="mode-title">Bring your own processor</h3>
                 <p class="mode-body">
-                  Already on Paystack or Stripe? Connect it and we stop taking a fee — your page, link, and supporters
-                  stay exactly as they are.
+                  Already on Paystack or Stripe? Soon you'll be able to connect it and keep 100% of every tip. Your page,
+                  link and supporters stay exactly as they are.
                 </p>
                 <ul class="mode-list">
-                  <li>Keep 100% of support</li>
-                  <li>Funds settle to your processor</li>
+                  <li>0% platform fee</li>
+                  <li>Funds settle to your own account</li>
                   <li>Switch anytime, no data lost</li>
                 </ul>
-                <a class="btn-outline mode-cta" href="/connect">
-                  Connect a processor
-                </a>
+                {/* Bring-your-own charging isn't built yet (it returns 402), so no link to switch to it. */}
+                <span class="mode-soon">Coming soon</span>
               </div>
             </div>
           </section>
 
-          {/* SOCIAL PROOF (real love notes from the database) */}
-          <section class="proof">
-            <div class="section-head">
-              <span class="section-eyebrow">Real love notes</span>
-              <h2 class="section-title">Support that feels personal.</h2>
+          {/* FOR SUPPORTERS */}
+          <section class="fans">
+            <div class="fans-card">
+              <span class="section-eyebrow">For your supporters</span>
+              <h2 class="fans-title">No account. No hassle.</h2>
+              <p class="fans-body">
+                Your fans pick an amount, add a note and pay by card or bank, in Naira or dollars. That's it.
+              </p>
             </div>
-            <div class="proof-grid">
-              {proof.map((note) => (
-                <div class="proof-card">
-                  <div class="proof-quote">“{note.message}”</div>
-                  <div class="proof-foot">
-                    <div class="avatar" style={`width:32px;height:32px;font-size:13px;background:${note.color};`}>
-                      {note.initial}
+          </section>
+
+          {/* SOCIAL PROOF (real love notes from the database; hidden until there are some) */}
+          {proof.length > 0 && (
+            <section class="proof">
+              <div class="section-head">
+                <span class="section-eyebrow">Real love notes</span>
+                <h2 class="section-title">Support that feels personal.</h2>
+              </div>
+              <div class="proof-grid">
+                {proof.map((note) => (
+                  <div class="proof-card">
+                    <div class="proof-quote">“{note.message}”</div>
+                    <div class="proof-foot">
+                      <div class="avatar" style={`width:32px;height:32px;font-size:13px;background:${note.color};`}>
+                        {note.initial}
+                      </div>
+                      <span class="proof-name">{note.name}</span>
+                      <span class="proof-amt">{note.amountLabel}</span>
                     </div>
-                    <span class="proof-name">{note.name}</span>
-                    <span class="proof-amt">{note.amountLabel}</span>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* FAQ */}
+          <section class="faq">
+            <div class="section-head">
+              <span class="section-eyebrow">Questions</span>
+              <h2 class="section-title">Good to know.</h2>
+            </div>
+            <div class="faq-list">
+              <details class="faq-item">
+                <summary>How much does it cost?</summary>
+                <p>
+                  Starting is free. On managed payouts we take a small fee ({commissionPct}%) from each tip, which covers
+                  payment processing.
+                </p>
+              </details>
+              <details class="faq-item">
+                <summary>How do I get my money?</summary>
+                <p>
+                  Add your bank details on the Payouts page. Once they're verified, you can withdraw from your wallet.
+                  Requests are reviewed before they settle.
+                </p>
+              </details>
+              <details class="faq-item">
+                <summary>Do my supporters need an account?</summary>
+                <p>No. They just pay. They can leave their name, or stay anonymous.</p>
+              </details>
+              <details class="faq-item">
+                <summary>Can fans outside Nigeria support me?</summary>
+                <p>Yes. Supporters can choose to pay in USD.</p>
+              </details>
+              <details class="faq-item">
+                <summary>Can I change my link later?</summary>
+                <p>Yes, anytime from Settings.</p>
+              </details>
             </div>
           </section>
 
