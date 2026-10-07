@@ -46,7 +46,7 @@ export function SetupPage({ shared, creator }: { shared: Shared; creator: Creato
                 <svg width="15" height="15" viewBox="0 0 24 24" class="rail-foot-heart">
                   <path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.3 4 2.5.8-1.2 2-2.5 4-2.5 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21Z" />
                 </svg>
-                Join 4,000+ Nigerian creators
+                Free to start · Naira-first
               </div>
             </aside>
 
