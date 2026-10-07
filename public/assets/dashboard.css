@@ -40,7 +40,7 @@
 .link-bar-url { font: 600 14px 'Hanken Grotesk', sans-serif; }
 .copy-btn {
   display: flex; align-items: center; gap: 7px;
-  height: 38px; padding: 0 16px;
+  height: 38px; padding: 0 16px 0 14px; /* leading icon: 2px less on its side */
   border: 2px solid var(--ink); border-radius: 9px;
   background: var(--brand); color: #fff;
   font: 700 14px 'Hanken Grotesk', sans-serif; cursor: pointer;

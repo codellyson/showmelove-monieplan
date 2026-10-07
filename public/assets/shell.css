@@ -34,6 +34,9 @@
   color: var(--muted);
   border: 2px solid transparent;
 }
+/* Icon stroke follows the label's weight: 500 → 1.5, active 700 → 2. */
+.nav-item svg { stroke-width: 1.5; }
+.nav-item.is-active svg { stroke-width: 2; }
 .nav-item.is-active {
   background: var(--brand); color: #fff;
   border: 2px solid var(--ink);

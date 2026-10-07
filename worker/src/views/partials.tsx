@@ -27,7 +27,7 @@ export function Menu({ user, creator }: Shared) {
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2.2"
+          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
@@ -57,7 +57,7 @@ const ICON = {
   viewBox: '0 0 24 24',
   fill: 'none',
   stroke: 'currentColor',
-  'stroke-width': '1.9',
+  'stroke-width': '1.5',
   'stroke-linecap': 'round',
   'stroke-linejoin': 'round',
 }

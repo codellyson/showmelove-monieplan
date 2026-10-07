@@ -185,7 +185,7 @@ a.btn-primary, a.btn-outline, a.btn-pop, a.btn-pill {
   border: 2px solid var(--ink); cursor: pointer; padding: 0;
   transition: transform .1s;
 }
-.theme-swatch:hover { transform: scale(1.12); }
+.theme-swatch:hover { transform: scale(1.1); }
 .theme-swatch.is-active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--ink); }
 
 @media (max-width: 760px) {

@@ -75,6 +75,8 @@
   width: 100%; margin-top: 22px; height: 56px;
   display: flex; align-items: center; justify-content: center;
 }
+/* Trailing arrow: 2px less padding on the icon side, so the label looks centred. */
+.connect-btn:has(svg) { padding-inline: 30px 28px; }
 .empty-hint {
   margin-top: 22px; padding-top: 22px; border-top: 2px solid var(--bg);
   font: 500 14px 'Hanken Grotesk', sans-serif; color: var(--muted-2); text-align: center;
