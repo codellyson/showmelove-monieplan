@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "showmelove",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["ace", "serve", "--hmr"],
+      "port": 3333
+    },
+    {
+      "name": "showmelove-worker",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--prefix", "worker", "wrangler", "dev", "--config", "worker/wrangler.jsonc", "--port", "8790"],
+      "port": 8790
+    }
+  ]
+}
