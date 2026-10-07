@@ -71,6 +71,8 @@ export const supports = sqliteTable('supports', {
   chargeCurrency: text('charge_currency'),
   /** Marketplace split from the payment.succeeded webhook, as JSON. */
   khaimeSplit: text('khaime_split'),
+  /** Khaime's transaction id from Create Charge; lets the reconcile Cron look the payment up. */
+  khaimeTransactionId: text('khaime_transaction_id'),
   ...timestamps,
 })
 

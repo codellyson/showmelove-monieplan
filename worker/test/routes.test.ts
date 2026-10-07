@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDb } from '../src/db/client'
 import { creators, supports } from '../src/db/schema'
-import app from '../src/index'
+import { app } from '../src/index'
 
 const ORIGIN = 'http://localhost'
 const db = createDb(env.DB)
@@ -105,6 +105,7 @@ describe('support checkout', () => {
     })
     expect(row.reference).toBe(charge.body.reference)
     expect(row.reference).toMatch(/^sml_/)
+    expect(row.khaimeTransactionId).toBe('tx1')
   })
 
   it('returns Stripe details for a tip paid in USD', async () => {

@@ -65,3 +65,9 @@
   delivery. `worker/src/routes/webhooks.ts` writes the rule into the statement
   (`UPDATE ... WHERE reference = ? AND status != 'succeeded'`), so a late
   `payment.failed` can never undo a `payment.succeeded`.
+- **Khaime's partner API is documented at docs.khaime.com.** Pages are
+  available as markdown by appending `.md` (e.g.
+  `https://docs.khaime.com/api-reference/payments/get-transaction.md`,
+  `https://docs.khaime.com/webhooks/events.md`); `llms.txt` lists them. That is
+  where the payment `status` values (`succeeded`, `failed`, `refunded`,
+  `disputed`) and the `GET /transactions/:id` contract come from.

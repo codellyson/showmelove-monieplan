@@ -1,8 +1,9 @@
-import { and, eq, ne } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import type { AppEnv } from '../app_env'
-import { creators, supports } from '../db/schema'
-import { marketplaceSplitFrom, payoutStatusFor } from '../services/khaime'
+import { creators } from '../db/schema'
+import { payoutStatusFor } from '../services/khaime'
+import { applyPaymentOutcome } from '../services/payment_outcome'
 
 /**
  * Port of app/controllers/webhooks_controller.ts. Outside auth and CSRF
@@ -50,32 +51,12 @@ webhookRoutes.post('/webhooks/khaime', async (c) => {
   const type = event?.event_type
   const data = event?.data ?? {}
 
-  // Charge-API tips can ONLY be confirmed here (no polling), so this is the
-  // single source of truth for managed payments.
+  // The main way a tip gets confirmed; the reconcile Cron (src/jobs) catches
+  // webhooks that never arrive. Both go through applyPaymentOutcome.
   if (type === 'payment.succeeded' || type === 'payment.failed') {
     const reference = data.metadata?.partner_reference ?? data.partner_reference
     if (reference) {
-      const next = type === 'payment.succeeded' ? 'succeeded' : 'failed'
-      const split = marketplaceSplitFrom(data.metadata)
-      if (split?.mismatches.length) {
-        console.warn('Khaime marketplace split: top-level fields disagree with marketplace_settlement', {
-          reference,
-          mismatches: split.mismatches,
-          split,
-        })
-      }
-      // A succeeded support never goes back. Expressed as conditions on the
-      // UPDATE itself (D1 has no interactive transactions), so a duplicate or
-      // late payment.failed can't race a payment.succeeded.
-      await db.batch([
-        db
-          .update(supports)
-          .set({ status: next })
-          .where(and(eq(supports.reference, reference), ne(supports.status, 'succeeded'))),
-        ...(split
-          ? [db.update(supports).set({ khaimeSplit: JSON.stringify(split) }).where(eq(supports.reference, reference))]
-          : []),
-      ])
+      await applyPaymentOutcome(db, reference, type === 'payment.succeeded' ? 'succeeded' : 'failed', data.metadata)
     }
   } else if (type === 'account.updated') {
     // Sub-merchant payout/onboarding status changed (e.g. Stripe Connect

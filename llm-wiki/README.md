@@ -27,9 +27,13 @@ creator accounts, and plain CSS/JS from `public/assets`.
 - **Amounts on a `Support` are major units in the creator's currency.**
   Khaime wants minor units; convert only at the edge in `app/services/khaime.ts`
   (`toMinor`). Mixing the two silently charges 100x or 1/100th.
-- **A tip is only paid when the `payment.succeeded` webhook says so.** The
-  support controller records `pending`; nothing else flips it. Don't add
-  "optimistic success" paths.
+- **A tip is only paid when Khaime says so.** The support controller records
+  `pending`. Only Khaime's verdict flips it: the `payment.succeeded` /
+  `payment.failed` webhook, or, in the Workers port, the reconcile Cron reading
+  the same payment object from `GET /transactions/:id`
+  (`worker/src/jobs/reconcile_pending.ts`). Both go through one function
+  (`worker/src/services/payment_outcome.ts`), and a succeeded tip never goes
+  back. Don't add "optimistic success" paths.
 - **Payment failures are honest.** If Khaime is unconfigured, the creator is
   not provisioned, or the creator is `byo`, the support endpoint returns a clear
   402/503 instead of pretending. Keep that behaviour.
@@ -43,8 +47,11 @@ creator accounts, and plain CSS/JS from `public/assets`.
   to `byo`, but charging on the creator's own Paystack/Stripe returns 402.
 - **Payers in currencies other than the creator's own or USD.**
   `PAY_CURRENCIES` is `['USD']`; there is no general currency picker.
-- **Polling for payment status.** No job checks Khaime; a lost webhook means the
-  support stays `pending` until someone reads `GET /transactions/:id`.
+- **Polling for payment status (AdonisJS app).** No job checks Khaime there; a
+  lost webhook leaves the support `pending` until someone reads
+  `GET /transactions/:id`. The Workers port has a Cron for this (see above);
+  it only covers tips created after its migration 0002, which stores the
+  transaction id.
 - **Supporter accounts.** Supporters are anonymous or name-only; only creators
   sign in.
 - **Seed data.** The README mentions `node ace db:seed`, but there are no

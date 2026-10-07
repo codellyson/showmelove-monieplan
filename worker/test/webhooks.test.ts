@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDb } from '../src/db/client'
 import { creators, supports } from '../src/db/schema'
-import app from '../src/index'
+import { app } from '../src/index'
 
 const db = createDb(env.DB)
 

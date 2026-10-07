@@ -66,6 +66,17 @@ export interface KhaimeMerchantDetails {
   [k: string]: unknown
 }
 
+/** Khaime's payment object, as in the payment.* webhook `data` and GET /transactions/:id. */
+export interface KhaimePayment {
+  object?: 'payment'
+  id?: string
+  status?: 'succeeded' | 'failed' | 'refunded' | 'disputed' | string
+  partner_reference?: string
+  metadata?: Record<string, any>
+  paid_at?: string | null
+  [k: string]: unknown
+}
+
 export type PayoutSetupStatus = 'pending' | 'action_needed' | 'ready' | null
 
 interface CheckoutToken {
@@ -407,6 +418,16 @@ export function createKhaime(env: Env) {
     return send<KhaimeMerchantDetails>('GET', `/merchants/${merchantId}`)
   }
 
+  /**
+   * Look a payment up by Khaime's transaction id (Create Charge's
+   * `transaction_id`). Returns the same payment object as the payment.*
+   * webhook's `data`; `status` is succeeded, failed, refunded or disputed.
+   * 404 (ORDER_NOT_FOUND) also covers a suspended or pending sub-merchant.
+   */
+  function getTransaction(transactionId: string) {
+    return send<KhaimePayment>('GET', `/transactions/${encodeURIComponent(transactionId)}`)
+  }
+
   /** NGN (local-bank) payout. Khaime verifies the account; we only collect details. */
   function setupNairaPayout(
     merchantId: string,
@@ -456,6 +477,7 @@ export function createKhaime(env: Env) {
     quoteChargeAmount,
     createCharge,
     getMerchant,
+    getTransaction,
     setupNairaPayout,
     getPayoutBanks,
     connectStripePayout,

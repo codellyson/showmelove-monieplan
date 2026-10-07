@@ -1,5 +1,8 @@
 import { createApp } from './app'
+import { createDb } from './db/client'
 import { creators } from './db/schema'
+import { reconcilePending } from './jobs/reconcile_pending'
+import { createKhaime } from './services/khaime'
 import { authRoutes } from './routes/auth'
 import { creatorArea } from './routes/creator_area'
 import { landingRoutes, publicRoutes } from './routes/public'
@@ -28,4 +31,12 @@ app.route('/', landingRoutes)
 app.route('/', creatorArea)
 app.route('/', publicRoutes) // keep last
 
-export default app
+export { app }
+
+export default {
+  fetch: app.fetch,
+  /** Cron Trigger (wrangler.jsonc `triggers.crons`): reconcile tips whose webhook never arrived. */
+  async scheduled(_controller, env, ctx) {
+    ctx.waitUntil(reconcilePending(createDb(env.DB), createKhaime(env)).then(() => undefined))
+  },
+} satisfies ExportedHandler<Env>

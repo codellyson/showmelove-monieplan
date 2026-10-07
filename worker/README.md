@@ -79,10 +79,27 @@ the marketplace split is stored and mismatches logged; `account.updated`
 re-fetches the merchant for its payout status. Exempt from CSRF and the
 session middleware.
 
-Everything in the AdonisJS app is now ported. Left before cutover: optionally
-a Cron Trigger that checks `pending` tips via `GET /transactions/:id` (covers
-lost webhooks), then the deploy and data move below, and pointing the Khaime
-webhook URL at the Worker.
+Everything in the AdonisJS app is now ported. Left before cutover: the deploy
+and data move below, and pointing the Khaime webhook URL at the Worker.
+
+## Reconcile Cron (beyond the AdonisJS app)
+
+Every 10 minutes (`triggers.crons` in `wrangler.jsonc`),
+`src/jobs/reconcile_pending.ts` looks up tips still `pending` 10 minutes after
+creation (up to 3 days old, 50 per run, newest first) with Khaime's
+`GET /transactions/:id`, which returns the same payment object as the webhook.
+`succeeded` / `failed` are applied through the same `applyPaymentOutcome` as
+the webhook. `refunded` / `disputed` stay pending and are logged for a person
+to review. Lookup errors (including 404 while a checkout is unfinished) are
+retried next run.
+
+The transaction id comes from Create Charge and is stored in
+`supports.khaime_transaction_id` (migration 0002). Tips created before that,
+including everything imported from the AdonisJS database, have none and are
+never checked; settle those by hand if they matter.
+
+Locally: `curl "localhost:8790/cdn-cgi/handler/scheduled?cron=*/10+*+*+*+*"`
+runs it once against the dev database.
 
 ## Tests
 

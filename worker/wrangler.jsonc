@@ -35,5 +35,9 @@
     "MAIL_FROM_NAME": "Show Me Love"
   },
 
+  // Every 10 minutes: look up tips still pending after their webhook should
+  // have arrived (src/jobs/reconcile_pending.ts).
+  "triggers": { "crons": ["*/10 * * * *"] },
+
   "observability": { "enabled": true }
 }

@@ -120,6 +120,7 @@ publicRoutes.post('/:handle/support', async (c) => {
       recurring,
       status: 'pending',
       reference,
+      khaimeTransactionId: charge.transactionId,
     })
 
     // Stripe gateway (e.g. USD): confirm client-side with Stripe.js.
