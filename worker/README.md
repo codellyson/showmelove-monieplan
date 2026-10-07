@@ -18,9 +18,31 @@ Phase 1 (platform scaffold) is done:
   per-request factories reading the Worker env.
 - `src/index.ts`: `/api/auth/*` and a `/health` check.
 
-Still to port: services (`khaime.ts`, provisioner, profile, presenter), the
-current-user and auth middleware, the 9 controllers and 22 Edge views (as Hono
-JSX), and the Khaime webhook.
+Phase 2 (services) is done, in `src/services/`:
+
+- `khaime.ts`: `createKhaime(env)` per request. Pure helpers (`toMinor`,
+  `marketplaceSplitFrom`, `payoutStatusFor`, `decodeCheckoutToken`,
+  `verifyWebhook`) are plain exports. The webhook HMAC uses WebCrypto, and the
+  checkout token is decoded with `atob` instead of Node's `Buffer`.
+- `creator_provisioner.ts`, `creator_profile.ts`, `creator_presenter.ts`: take a
+  Drizzle `db` as their first argument. `applyProfile` returns the updated
+  creator instead of mutating its input. Handle uniqueness is enforced by the
+  unique index (insert, catch, retry) because D1 has no interactive
+  transactions. The presenter takes an optional `now`, used for both the deltas
+  and the "2 days ago" labels.
+
+Still to port: the current-user and auth middleware, the 9 controllers and 22
+Edge views (as Hono JSX), and the Khaime webhook.
+
+## Tests
+
+```bash
+npm test
+```
+
+Vitest runs inside the Workers runtime (`@cloudflare/vitest-pool-workers`) on a
+local D1 with the migrations applied. `fetch` is stubbed per test and the
+Khaime config in `vitest.config.ts` is fake, so tests never reach Khaime.
 
 ## Run locally
 

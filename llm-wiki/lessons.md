@@ -35,3 +35,7 @@
   binding straight to Better Auth (`database: env.DB`): its built-in D1
   dialect writes ISO date text like the old setup. Run `wrangler dev` on 8790;
   8787 is held by another `workerd` on this machine.
+- **Worker `compatibility_date` is capped by the test runner.** The `workerd`
+  bundled with `@cloudflare/vitest-pool-workers` lags wrangler's; a newer date
+  fails every test with "requires compatibility date ... newest supported is
+  ...". Keep `worker/wrangler.jsonc` at or below what `npm test` accepts.
