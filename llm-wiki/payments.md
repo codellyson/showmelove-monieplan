@@ -1,6 +1,7 @@
 # Payments (Khaime)
 
-All Khaime calls live in `app/services/khaime.ts`. showmelove is a Khaime
+All Khaime calls live in `src/services/khaime.ts` (`createKhaime(env)`, one per
+request). showmelove is a Khaime
 **marketplace operator**: each managed creator is a sub-merchant under it, and
 showmelove takes a commission on every tip.
 
@@ -69,14 +70,18 @@ the supporter lands back on `/:handle?thanks=1`.
 **raw body** with `KHAIME_WEBHOOK_SECRET` (constant-time). Parsing the body
 before verifying, or re-serialising it, breaks every signature.
 
-- `payment.succeeded` / `payment.failed`: matched by `metadata.partner_reference`;
-  the only thing that marks a tip paid. A `succeeded` support never goes back.
+- `payment.succeeded` / `payment.failed`: matched by `metadata.partner_reference`
+  and applied by `applyPaymentOutcome` (`src/services/payment_outcome.ts`). A
+  `succeeded` support never goes back.
 - `account.updated`: re-fetches the merchant and sets `payoutStatus` from
   `payout_ready`, plus provider, Stripe account and settlement currency.
 
-Khaime only reaches a local server through a tunnel. Without one, read a payment
-with `GET /transactions/:id`, which returns the same payment object as
-the webhook.
+The reconcile Cron (`src/jobs/reconcile_pending.ts`, every 10 minutes) catches
+webhooks that never arrive: for tips still `pending` after 10 minutes (up to 3
+days), it reads `GET /transactions/:id`, which returns the same payment object
+as the webhook, and applies `succeeded` / `failed` through the same
+`applyPaymentOutcome`. `refunded` / `disputed` are left pending and logged for
+a person. It needs `supports.khaime_transaction_id`, stored from Create Charge.
 
 ## The marketplace split
 

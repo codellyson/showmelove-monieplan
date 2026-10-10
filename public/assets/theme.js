@@ -21,10 +21,9 @@
   function set(color) {
     document.documentElement.style.setProperty('--brand', color);
     render();
-    const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
     fetch('/brand', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ color }),
     }).catch(() => {});
   }

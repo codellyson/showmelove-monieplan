@@ -1,68 +1,113 @@
 # showmelove
 
-A creator support / tip-jar app for the Nigerian market (Naira-first), built with
-**AdonisJS 6** (Edge views + Lucid + SQLite). One product, two invisible payout
-modes (managed vs bring-your-own), per the product PRD.
+A Naira-first tip jar for creators. A creator gets a public page at `/:handle`;
+supporters send one-off or monthly "love" (tips) with an optional note, in the
+creator's currency or USD, without an account. Payments run through the Khaime
+Partner API.
 
-## Stack
+Runs on Cloudflare: a Worker (Hono, server-rendered JSX) with D1 (SQLite) for
+data, Better Auth for creator accounts, Workers Static Assets for `public/`,
+and a Cron Trigger that reconciles payments.
 
-- AdonisJS 6 (web starter kit) — routes, controllers, Edge templates
-- Lucid ORM on SQLite (`better-sqlite3`)
-- **Better Auth** (email/password) for authentication
-- Vanilla CSS/JS design system served from `public/assets` (no bundler step)
+## Layout
 
-## Run
+| Path | What |
+| --- | --- |
+| `src/index.ts` | Routes, plus the Cron's `scheduled` handler |
+| `src/app.ts` | Global middleware: services per request, security headers, CSRF, Better Auth at `/api/auth/*`, current user |
+| `src/routes/` | `auth.tsx`, `public.tsx` (landing, `/:handle`, tips), `creator_area.tsx`, `webhooks.ts` |
+| `src/views/` | Hono JSX pages and partials |
+| `src/services/` | Khaime client, creator provisioning, profile, presenter, payment outcomes |
+| `src/jobs/reconcile_pending.ts` | The reconcile Cron |
+| `src/db/schema.ts` | Drizzle types; the DDL lives in `migrations/` |
+| `public/assets/` | Hand-written CSS, client JS and fonts (no bundler) |
+| `test/` | Vitest in the Workers runtime |
+| `llm-wiki/` | How each subsystem works and why; read before changing one |
+| `_design_reference/` | The original static design pages |
+
+## Routes
+
+| Route | What |
+| --- | --- |
+| `GET /` | Landing page |
+| `GET /login` · `/register` · `/forgot` · `/reset` · `POST /logout` | Auth pages |
+| `GET, POST /api/auth/*` | Better Auth |
+| `GET /setup` · `/dashboard` · `/supporters` · `/connect` · `/settings` · `/payouts` 🔒 | Creator area |
+| `POST /setup` · `/connect` · `/connect/reset` · `/settings` · `/brand` · `/payouts/*` 🔒 | Creator actions |
+| `GET, POST /webhooks/khaime` | Khaime webhook (signature-verified) and a GET health check |
+| `GET /health` | Database check |
+| `GET /:handle` · `POST /:handle/support` | Public creator page and checkout. Registered last. |
+
+🔒 requires a signed-in creator (guests go to `/login?next=…`).
+
+## Run locally
 
 ```bash
 npm install
-node ace migration:run     # create tables
-node ace db:seed           # seed Ada Obi + 23 supporters (₦45,000 raised)
-node ace serve --hmr       # dev server
+cp .dev.vars.example .dev.vars   # fill in values; APP_KEY can be any random string locally
+npm run db:migrate:local
+npx wrangler dev
 ```
 
-The dev server prints its address (e.g. http://localhost:3333). Open `/` for the
-landing page.
+It serves on http://localhost:8790 (the `dev` block in `wrangler.jsonc`), and
+the "showmelove" config in `.claude/launch.json` starts the same thing.
 
-## Pages / routes
+## Tests
 
-| Route | What |
-|-------|------|
-| `GET /` | Landing (marketing; real love notes from DB) |
-| `GET /login` · `GET /register` · `POST /logout` | Auth pages / sign-out |
-| `ANY /api/auth/*` | Better Auth handler (sign-up/sign-in/session/sign-out) |
-| `GET /setup` 🔒 | Creator setup wizard (client-side steps) |
-| `GET /:handle` | Public support page, e.g. `/adabuilds` |
-| `POST /:handle/support` | Send support — runs the mock payment seam |
-| `GET /dashboard` 🔒 | Creator dashboard (`?state=managed\|empty\|byo` previews variants) |
-| `GET /connect` · `POST /connect` · `POST /connect/reset` 🔒 | Connect a processor |
+```bash
+npm test
+```
 
-🔒 = requires a signed-in user (redirects to `/login`).
+Vitest runs inside the Workers runtime (`@cloudflare/vitest-pool-workers`) on a
+local D1 with the migrations applied. `fetch` is stubbed per test and the
+Khaime config in `vitest.config.ts` is fake, so tests never reach Khaime.
+Typecheck with `npm run typecheck`.
 
-## Auth (Better Auth)
+## Deployed
 
-- Config: `app/lib/auth.ts` (no AdonisJS imports, so the Better Auth CLI can load it).
-  Opens its own better-sqlite3 connection to the same DB file; tables created via
-  `npx @better-auth/cli migrate --config app/lib/auth.ts`.
-- Bridge: `app/lib/auth_http.ts` converts AdonisJS ↔ web Request/Response; the handler is
-  mounted at `/api/auth/*` and exempted from shield CSRF (`config/shield.ts`).
-- `current_user_middleware` resolves the session on every request, shares `user`/`creator`
-  with views, and **lazily provisions a creator** for new users (`creator_provisioner.ts`).
-- `require_auth` named middleware guards the creator area.
-- Account menu lives in `resources/views/partials/menu.edge` (used in the nav); the dropdown
-  toggle is in `theme.js`.
+Staging runs at https://showmelove.kreativekorna.com (custom domain in
+`wrangler.jsonc`), on the D1 database `showmelove`, against Khaime's shared
+dev API, with the Cron every 10 minutes. Redeploy with `npx wrangler deploy`;
+apply new migrations first with `npm run db:migrate:remote`.
 
-## Domain
+Secrets (`npx wrangler secret put <NAME>`): `APP_KEY`, `KHAIME_API_KEY`,
+`KHAIME_WEBHOOK_SECRET`, `BREVO_API_KEY`, `MAIL_FROM_EMAIL`. Non-secret config
+is in `wrangler.jsonc` `vars`; for production, set `KHAIME_API_URL` to
+`https://api.khaime.com/api/v1` and use a live `KHAIME_API_KEY`.
 
-- `app/models/creator.ts`, `app/models/support.ts` — Lucid models
-- `app/services/creator_presenter.ts` — aggregates (raised, supporters, goal, notes)
-- `app/services/payment_rail.ts` — the swappable payment **seam** (PRD §5); ships a
-  `MockRail` that always settles. Real Paystack/Stripe rails slot in here.
-- `database/seeders/creator_seeder.ts` — demo data (Ada Obi, ₦45,000 / 23 supporters)
+Khaime sends webhooks to the URL registered for the partner key (Khaime
+Dashboard → Settings → API). Until that is
+`https://showmelove.kreativekorna.com/webhooks/khaime`, tips are confirmed by
+the reconcile Cron instead, within about 10 minutes.
 
-## Notes
+## Reconcile Cron
 
-- Brand color is server-set per creator (`--brand`). The floating picker appears
-  only on the creator's own pages and saves the choice to the creator
-  (`POST /brand`); visitors can't recolor a page.
-- `_design_reference/` holds the original static HTML/CSS/JS the views were ported from.
-- Monthly support is managed-mode only in v1; bring-your-own pages are one-time.
+Every 10 minutes (`triggers.crons`), `src/jobs/reconcile_pending.ts` looks up
+tips still `pending` 10 minutes after creation (up to 3 days old, 50 per run,
+newest first) with Khaime's `GET /transactions/:id`, which returns the same
+payment object as the webhook. `succeeded` / `failed` go through the same
+`applyPaymentOutcome` as the webhook. `refunded` / `disputed` stay pending and
+are logged for review. Lookup errors (including 404 while a checkout is
+unfinished) are retried next run. Tips need `supports.khaime_transaction_id`,
+which is stored from Create Charge (migration 0002); older tips have none.
+
+Locally: `curl "localhost:8790/cdn-cgi/handler/scheduled?cron=*/10+*+*+*+*"`
+runs it once against the dev database.
+
+## Importing the old database
+
+The app used to be an AdonisJS app on SQLite (removed; see git history before
+the "Remove the AdonisJS app" commit). Migration 0001 matches its schema column
+for column; 0002 adds a column the old rows don't have, so dump with column
+names, table by table (parents first), then load:
+
+```bash
+for t in creators supports user session account verification; do
+  sqlite3 -cmd ".headers on" -cmd ".mode insert \"$t\"" tmp/db.sqlite3 "select * from \"$t\""
+done > data.sql
+npx wrangler d1 execute showmelove --remote --file data.sql
+```
+
+Compare `select count(*)` per table afterwards, then delete `data.sql`: it holds
+user emails and password hashes. Keep `APP_KEY` the same as the old app's, or
+imported sessions stop validating.

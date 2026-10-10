@@ -1,7 +1,6 @@
-// showmelove — Connect a processor flow (wired to AdonisJS backend)
+// showmelove — Connect a processor flow.
 
 const $ = (s) => document.querySelector(s);
-const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
 const PROC_LABEL = { paystack: 'Paystack', stripe: 'Stripe' };
 
@@ -34,7 +33,7 @@ function showStage(name) {
 async function post(url, body) {
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+    headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) throw new Error('request failed');

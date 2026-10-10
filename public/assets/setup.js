@@ -16,7 +16,6 @@ const backEl    = $('#back');
 const nextEl    = $('#next');
 const byoExpand = $('#byoExpand');
 const errEl     = $('#setupError');
-const CSRF      = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
 const state = {
   step: 1,
@@ -98,7 +97,7 @@ async function finish() {
   try {
     const res = await fetch('/setup', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(collect()),
     });
     const data = await res.json().catch(() => ({}));

@@ -2,80 +2,109 @@
 
 ## Surfaces and routing
 
-One AdonisJS app serves everything (`start/routes.ts`): the landing page, the
-auth pages, the signed-in creator area, the public creator page, and the Khaime
-webhook. Views are Edge templates in `resources/views/pages`; each page pulls
-its own stylesheet and script from `public/assets` (no bundler for page JS).
+One Cloudflare Worker serves everything. Static files under `public/` (CSS,
+client JS, fonts) are served by Workers Static Assets before the Worker runs;
+every other request reaches `src/index.ts`. Pages are Hono JSX in
+`src/views/`, rendered on the server; each page pulls its own stylesheet and
+script from `public/assets` (no bundler for page JS).
 
-The public creator page is a catch-all, `GET /:handle` and
-`POST /:handle/support`, so it is **registered last**. Any new top-level route
+`src/index.ts` mounts the route groups in order: `webhookRoutes`,
+`authRoutes`, `landingRoutes`, `creatorArea`, then `publicRoutes`. The last
+holds the public creator page, a catch-all (`GET /:handle`,
+`POST /:handle/support`), so it is **mounted last**. Any new top-level route
 must go above it, or `/:handle` swallows it and you get "Creator not found".
 
-`/webhooks/khaime` is outside auth and CSRF: it is verified by signature
-instead (see payments.md).
+Each creator-area route takes `requireAuth` itself. Don't replace that with
+`creatorArea.use('*', requireAuth)`: Hono runs a sub-app's `'*'` middleware
+for every later route too, which would put `/:handle` behind login.
+
+`src/app.ts` builds the global stack, in order: per-request services (`db`,
+`auth`, `khaime` on `c.var`), security headers, CSRF, Better Auth at
+`/api/auth/*`, then the current user. `/api/auth/*` (Better Auth checks origins
+itself) and `/webhooks/*` (verified by signature, see payments.md) skip CSRF
+and the session middleware. CSRF is Hono's `csrf()`: cross-site form posts are
+rejected by Origin / Sec-Fetch-Site, and all client JS posts JSON, which can't
+cross sites without a CORS preflight. `onError` must pass `HTTPException`
+through, or `csrf()`'s 403 becomes a 500.
 
 ## Auth and the creator lifecycle
 
-Better Auth (email and password, `autoSignIn`) is mounted at `/api/auth/*`
-through a small adapter (`app/lib/auth_http.ts`) that converts between Adonis
-and Web `Request`/`Response`. It keeps its own tables in the same SQLite file,
-opened with its own `better-sqlite3` connection (`app/lib/auth.ts`); its schema
-is migrated by `bin/migrate-auth.ts`, separately from Lucid migrations.
-Verification and reset emails go through Brevo (`app/lib/email.ts`); with no
-`BREVO_API_KEY` they are printed to the server console, which is how local auth
-works.
+Better Auth (email and password, `autoSignIn`) is created per request
+(`src/lib/auth.ts`) because bindings only exist per request. It gets the D1
+binding directly and uses its built-in D1 dialect; its tables (`user`,
+`session`, `account`, `verification`) are in migration 0001 alongside the app's.
+`APP_KEY` is its secret: change it and every session cookie stops validating.
+Verification and reset emails go through Brevo (`src/lib/email.ts`); with no
+`BREVO_API_KEY` they are printed to the Worker log, which is how local auth
+works. The auth forms (`public/assets/auth.js`, `auth-reset.js`) validate in
+the browser and map Better Auth error codes to plain messages; never show its
+raw messages.
 
-`current_user_middleware.ts` runs on every routed request. It resolves the
-session, then:
+`src/middleware/current_user.ts` runs on every non-exempt request. It resolves
+the session, then:
 
-1. `ensureCreatorFor(user)` creates the user's `Creator` on first sight, with
+1. `ensureCreatorFor(db, user)` creates the user's creator on first sight, with
    defaults: NGN, ₦100,000 monthly goal, `payoutMode: 'managed'`, and a handle
-   slugified from the name or email (numbered on collision).
+   slugified from the name or email. D1 has no interactive transactions, so a
+   taken handle is detected by the unique index (insert, catch, try the next
+   number) rather than "find a free one, then insert".
 2. For managed creators without one, `khaime.ensureMerchant` provisions a Khaime
-   sub-merchant. Failures are logged, not thrown, so a Khaime outage never
-   blocks a page load; the creator just has no `khaimeMerchantId` yet.
+   sub-merchant (awaited, so the page that triggers it sees the id). Failures
+   are logged as a warning, never thrown, so a Khaime outage never blocks a
+   page load; the creator just has no `khaimeMerchantId` yet.
 
-Both are shared with views as `user` and `creator`. Protected pages use
-`middleware.auth()`.
+It sets `c.var.user`, `c.var.creator`, and `c.var.origin` / `c.var.siteHost`
+for page links (no hardcoded host).
 
 ## Payout modes
 
-`Creator.payoutMode` is the "invisible fork" from the PRD:
+`creators.payout_mode` is the "invisible fork" from the PRD:
 
 - `managed` (default): Khaime collects and pays out. Everything in payments.md
   applies.
 - `byo`: set via `/connect` with a `processor` of `paystack` or `stripe`;
   `/connect/reset` goes back to managed. Charging is not built, so supporters
-  get a 402.
+  get a 402. The landing page marks it "coming soon" with no link.
 
 The payout rail for a managed creator follows the creator's currency
-(`payouts_controller.ts`): African currencies (`NGN GHS KES ZAR TZS XAF XOF`)
-pay out to a local bank, everything else through a Khaime-managed Stripe
+(`src/routes/creator_area.tsx`): African currencies (`NGN GHS KES ZAR TZS XAF
+XOF`) pay out to a local bank, everything else through a Khaime-managed Stripe
 Connect account.
+
+## Branding
+
+Each creator has a `brand_color`; the server renders it as `--brand` on every
+page that belongs to them. The floating picker (`public/assets/theme.js`)
+appears only on the creator's own pages (`body[data-brand-save="1"]`) and saves
+picks with `POST /brand`. Visitors never see it.
 
 ## Data model
 
-Two Lucid models on SQLite (`tmp/db.sqlite3`; migrations numbered
-`17000000000NN_*`):
+D1 database `showmelove`; DDL in `migrations/` (apply with
+`npm run db:migrate:local` / `:remote`), Drizzle types in `src/db/schema.ts`.
+Timestamps are text, `YYYY-MM-DD HH:MM:SS` UTC (what `CURRENT_TIMESTAMP` writes).
 
-- `Creator`: owner `userId` (Better Auth id), `handle`, `currency` and
-  `currencySymbol`, `monthlyGoal` (major units), `brandColor`, `payoutMode`,
-  `processor`, and the Khaime state: `khaimeMerchantId`, `payoutStatus`
-  (`null`, `pending`, `action_needed`, `ready`), `payoutProvider`
-  (`bank`/`stripe`), `settlementCurrency`, `stripeAccountId`.
-- `Support`: one tip. `amount` and `currency` are what the creator is owed, in
-  major units of the creator's currency. `chargeAmount` and `chargeCurrency`
-  are what the supporter paid (minor units), set when they differ.
-  `status` is `pending`, `succeeded` or `failed`. `reference` is the
-  `sml_…` partner reference sent to Khaime. `khaimeSplit` holds the marketplace
-  split from the webhook as JSON.
+- `creators`: owner `user_id` (Better Auth id), `handle` (unique), `currency`
+  and `currency_symbol`, `monthly_goal` (major units), `brand_color`,
+  `payout_mode`, `processor`, and the Khaime state: `khaime_merchant_id`,
+  `payout_status` (`null`, `pending`, `action_needed`, `ready`),
+  `payout_provider` (`bank`/`stripe`), `settlement_currency`,
+  `stripe_account_id`.
+- `supports`: one tip. `amount` and `currency` are what the creator is owed, in
+  major units of the creator's currency. `charge_amount` and `charge_currency`
+  are what the supporter paid (minor units). `status` is `pending`,
+  `succeeded` or `failed`. `reference` is the `sml_…` partner reference sent to
+  Khaime. `khaime_split` holds the marketplace split as JSON.
+  `khaime_transaction_id` (migration 0002) lets the Cron look the payment up.
 
-`payoutStatus` is persisted so pages can render payout state without a live
+`payout_status` is persisted so pages can render payout state without a live
 Khaime call; `/payouts` and `account.updated` refresh it.
 
 ## Deploy
 
-`Dockerfile` (Node 22) plus `docker-entrypoint.sh`, built for Coolify. On boot
-the entrypoint runs Lucid migrations, then Better Auth migrations, then the
-server. `/app/tmp` is a volume because it holds the SQLite database; lose the
-volume and you lose every creator and tip.
+`npx wrangler deploy` uploads the Worker and `public/`, binds D1, attaches the
+custom domain and the Cron. Apply migrations to the remote database first
+(`npm run db:migrate:remote`). Secrets are `wrangler secret`s; non-secret
+config is `vars` in `wrangler.jsonc`. Staging is
+https://showmelove.kreativekorna.com on Khaime's dev API. D1 is managed and
+backed up by Cloudflare (Time Travel); there is no volume to lose.

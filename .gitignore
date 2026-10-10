@@ -1,27 +1,18 @@
-# Dependencies and AdonisJS build
+# Dependencies
 node_modules
-build
+
+# Wrangler local state (local D1 database) and local secrets
+.wrangler
+.dev.vars
+.env
+.env.*
+
+# Old AdonisJS local database, kept on disk for the data move (see README)
 tmp
 
-# Secrets
-.env
-.env.local
-.env.production.local
-.env.development.local
-
-# Vite build output only — our hand-written design system also lives in
-# public/assets and must be tracked, so don't ignore the whole folder.
-# Vite writes to a dedicated subfolder it's allowed to wipe on each build.
-public/assets/vite
-
-# Build tools specific
-npm-debug.log
-yarn-error.log
-
-# Editors specific
+# Editors and OS
 .fleet
 .idea
 .vscode
-
-# Platform specific
 .DS_Store
+npm-debug.log

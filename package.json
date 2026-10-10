@@ -5,75 +5,25 @@
   "type": "module",
   "license": "UNLICENSED",
   "scripts": {
-    "start": "node bin/server.js",
-    "build": "node ace build",
-    "dev": "node ace serve --hmr",
-    "test": "node ace test",
-    "lint": "eslint .",
-    "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
-  },
-  "imports": {
-    "#controllers/*": "./app/controllers/*.js",
-    "#exceptions/*": "./app/exceptions/*.js",
-    "#lib/*": "./app/lib/*.js",
-    "#models/*": "./app/models/*.js",
-    "#mails/*": "./app/mails/*.js",
-    "#services/*": "./app/services/*.js",
-    "#listeners/*": "./app/listeners/*.js",
-    "#events/*": "./app/events/*.js",
-    "#middleware/*": "./app/middleware/*.js",
-    "#validators/*": "./app/validators/*.js",
-    "#providers/*": "./providers/*.js",
-    "#policies/*": "./app/policies/*.js",
-    "#abilities/*": "./app/abilities/*.js",
-    "#database/*": "./database/*.js",
-    "#tests/*": "./tests/*.js",
-    "#start/*": "./start/*.js",
-    "#config/*": "./config/*.js"
-  },
-  "devDependencies": {
-    "@adonisjs/assembler": "^7.8.2",
-    "@adonisjs/eslint-config": "^2.0.0",
-    "@adonisjs/prettier-config": "^1.4.4",
-    "@adonisjs/tsconfig": "^1.4.0",
-    "@japa/assert": "^4.0.1",
-    "@japa/plugin-adonisjs": "^4.0.0",
-    "@japa/runner": "^4.2.0",
-    "@swc/core": "1.11.24",
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/luxon": "^3.7.2",
-    "@types/node": "^22.15.18",
-    "eslint": "^9.26.0",
-    "hot-hook": "^0.4.0",
-    "pino-pretty": "^13.0.0",
-    "prettier": "^3.5.3",
-    "ts-node-maintained": "^10.9.5",
-    "typescript": "~5.8",
-    "vite": "^6.3.5"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "cf-typegen": "wrangler types",
+    "db:migrate:local": "wrangler d1 migrations apply showmelove --local",
+    "db:migrate:remote": "wrangler d1 migrations apply showmelove --remote",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@adonisjs/auth": "^9.4.0",
-    "@adonisjs/core": "^6.18.0",
-    "@adonisjs/lucid": "^21.6.1",
-    "@adonisjs/session": "^7.5.1",
-    "@adonisjs/shield": "^8.2.0",
-    "@adonisjs/static": "^1.1.1",
-    "@adonisjs/vite": "^4.0.0",
-    "@vinejs/vine": "^3.0.1",
-    "better-auth": "^1.6.20",
-    "better-sqlite3": "^12.11.1",
-    "edge.js": "^6.2.1",
-    "luxon": "^3.7.2",
-    "reflect-metadata": "^0.2.2"
+    "better-auth": "^1.7.7",
+    "drizzle-orm": "^0.45.3",
+    "hono": "^4.13.13",
+    "luxon": "^3.7.2"
   },
-  "hotHook": {
-    "boundaries": [
-      "./app/controllers/**/*.ts",
-      "./app/middleware/*.ts",
-      "./app/services/**/*.ts",
-      "./app/lib/**/*.ts"
-    ]
-  },
-  "prettier": "@adonisjs/prettier-config"
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@types/luxon": "^3.7.6",
+    "typescript": "~5.8",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.148.0"
+  }
 }

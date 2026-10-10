@@ -1,10 +1,9 @@
-// showmelove — public Support Page (wired to AdonisJS backend)
+// showmelove — public creator page: amounts, checkout and payment states.
 
 const card = document.querySelector('.support-card');
 const HANDLE = card.dataset.handle;
 const SYM = card.dataset.sym || '₦';
 const CURRENCY = (card.dataset.currency || 'NGN').toUpperCase();
-const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
 // Suggested amounts scale to the currency: large units for African currencies,
 // small units for USD/GBP/EUR and the like.
@@ -89,7 +88,7 @@ async function submit() {
   try {
     const res = await fetch('/' + HANDLE + '/support', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         amount,
         payCurrency: state.pay,
